@@ -1,0 +1,67 @@
+Title:  Death By Life
+
+Pitch: An invasive alien species has decided not to live a sustainable life, pillaging the planet for resources until nothing is left.  You play the role of the planet's gaia, charged with taking the offensive with your life-giving powers, destroying their mining machines by choking them out with vines, setting fire to the aliens.
+
+game type: arcade play. small levels, high scores
+controls: mouse/touch only
+primary move mechanic: click and hold for jetpack in pointer direction 
+attack mechanic: a vine attack that travels through terrain and damages anything at the other end touching the terrain
+
+player
+    movement
+    jump/flight
+    mouse/touch based controls
+    click in space to jump towards that point
+    click and hold in space to fly continously  (jetpack style controls)
+    click and drag from player towards target to "shoot".
+    Shoot:
+        vine attack.
+        target must be touching ground tile on tilemap
+        attack travels a path through the ground from the player to the target
+        attacking living things causes drops that can be collected by the player to extend attack reach
+
+    powerup:
+        vine reach extended
+        vine attack endpoint more powerful
+
+enemies
+    living invaders
+    movement
+     basic patrol
+    attack
+        basic pea shooter towards player
+    
+    machine fans
+        machine fans attached to larger machines than can overheat and explode
+        attack fans to disable them
+
+Score:
+    per machine fan destroyed
+    per enemy destroyed
+    per enemy hit
+    combo, things destroyed with one attack
+
+levels
+    as a turn away from previous games, this game will feature small procedural levels
+    with a clear goal rather than one big world.  
+
+    levels are either above ground or below ground
+    floating rocks/mountains pandora style - basically a sparsely populated cave
+    underground mining areas - caves with many small pockets
+
+    levels are complete when all machines are down
+    bonus for killing all living critters
+
+visual goals:
+    a decent vine growth + flowers system
+    vine attacks persist in the world once committed
+    good amount of polish on explosions
+        big circle particles for fire and smoke that floats upwards
+    parallax decor - clouds, mountains, etc.
+    lots of score juice
+
+
+
+
+
+    

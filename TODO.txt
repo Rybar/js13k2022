@@ -1,0 +1,17 @@
+player
+player movement
+cam movement
+tilemap
+fan enemy entity
+machine enemy entity
+alien enemy entity
+vine attack
+    path check
+fan/player attack interaction
+fan/machine dependency interaction
+machine explode/enemies interaction
+vine attack/enemies interaction
+vine / machiney terrain interaction -?
+
+
+
