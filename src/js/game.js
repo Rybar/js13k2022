@@ -251,6 +251,29 @@ onclick=e=>{
   }
 }
 
+ontouchstart=e=>{
+  x=e.pageX;y=e.pageY;
+  paused = false;
+  switch(gamestate){
+      case PRELOAD: 
+        if(soundsReady == 0 && !started){
+          initGameData();
+          initAudio();
+          started = true;
+        }
+      break;
+
+      case TITLESCREEN: 
+      break;
+
+      case GAME:
+        
+      break;
+
+      case GAMEOVER: 
+  }
+}
+
 function pruneDead(entitiesArray){
   for(let i = 0; i < entitiesArray.length; i++){
     let e = entitiesArray[i];
