@@ -228,7 +228,17 @@ window.addEventListener('mouseup', function (event) {
  // handleInput(event);
 } , false);
 
-onclick=e=>{
+window.addEventListener('touchstart', function (event) {
+  
+  if(gamestate = PRELOAD){
+    onWindowInteraction(event); 
+  } else {
+    cursor.isDown = true;
+    handleInput(event);
+  }
+}, false);
+
+onWindowInteraction = function(e){
   x=e.pageX;y=e.pageY;
   paused = false;
   switch(gamestate){
@@ -251,28 +261,8 @@ onclick=e=>{
   }
 }
 
-ontouchstart=e=>{
-  x=e.pageX;y=e.pageY;
-  paused = false;
-  switch(gamestate){
-      case PRELOAD: 
-        if(soundsReady == 0 && !started){
-          initGameData();
-          initAudio();
-          started = true;
-        }
-      break;
-
-      case TITLESCREEN: 
-      break;
-
-      case GAME:
-        
-      break;
-
-      case GAMEOVER: 
-  }
-}
+onclick=e=>{ onWindowInteraction(e); }
+ontouchstart=e=>{ onWindowInteraction(e);}
 
 function pruneDead(entitiesArray){
   for(let i = 0; i < entitiesArray.length; i++){
