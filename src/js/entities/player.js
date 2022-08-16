@@ -4,23 +4,10 @@ class Player {
         this.y = y;
         this.width = 8;
         this.height = 16;
-        this.speed = {
-            x: 2,
-            y: 2
-        }
-        this.velocity = {
-            x: 0,
-            y: 0
-        }
-        this.drag = {
-            x: 0.8,
-            y: 0.8
-        }
-        this.target = {
-            x: 0,
-            y: 0,
-            distance: 0
-        }
+        this.speed = {x: 2, y: 2}
+        this.velocity = {x: 0, y: 0}
+        this.drag = {x: 0.8, y: 0.8}
+        this.target = {x: 0,y: 0, distance: 0}
         this.alive = true;
     }
 
@@ -51,6 +38,7 @@ class Player {
         let direction = Math.atan2(yDelta, xDelta);
         this.velocity.x = Math.cos(direction) * this.speed.x;
         this.velocity.y = Math.sin(direction) * this.speed.y;
+        playSound(sounds.tada);
     }
 }
 

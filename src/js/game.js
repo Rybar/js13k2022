@@ -6,7 +6,7 @@ import Player from './entities/player.js';
 import cellComplete from './sounds/cellComplete.js';
 import tada from './sounds/tada.js';
 
-import { playSound, Key } from './core/utils.js';
+import { playSound, Key, lerp } from './core/utils.js';
 import Splode from './splode.js';
 
 if(innerWidth < 800){
@@ -20,10 +20,28 @@ else {
   h = Math.floor(innerHeight/4);
 }
 
-view = {
-  x: 0,
-  y: 0,
-}
+view = { x: 0, y: 0 }
+cursor = { x: 0, y: 0, isDown: false }
+viewTarget = { x: 0, y: 0 }
+
+window.t = 1;
+splodes = [];
+window.player = new Player(100, 100);
+screenCenterX = w/2; screenCenterY = h/2;
+gamestate=0;
+paused = false;
+started=false;
+sounds = {};
+soundsReady = 0;
+totalSounds = 2;
+audioTxt = "";
+debugText = "";
+
+const PRELOAD = 0;
+const GAME = 1;
+const TITLESCREEN = 2;
+
+
 
 const styleSheet = document.createElement("style")
 styleSheet.type = "text/css"
@@ -39,10 +57,6 @@ styleSheet.innerText = `
 `
 document.head.appendChild(styleSheet)
 
-screenCenterX = w/2; screeenCenterY = h/2;
-gamestate=0;
-paused = false;
-started=false;
 
 const atlasURL = 'DATAURL:src/img/palette.webp';
 atlasImage = new Image();
@@ -65,27 +79,6 @@ function gameInit(){
   gamebox.appendChild(r.c);
   gameloop();
 }
-
-window.t = 1;
-splodes = [];
-window.player = new Player(100, 100);
-
-sounds = {};
-soundsReady = 0;
-totalSounds = 2;
-audioTxt = "";
-debugText = "";
-
-const PRELOAD = 0;
-const GAME = 1;
-const TITLESCREEN = 2;
-
-cursor = {
-  x: 0,
-  y: 0,
-  isDown: false
-}
-
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
@@ -139,6 +132,11 @@ function updateGame(){
 
   player.update();
 
+  viewTarget.x = player.x - screenCenterX;
+  viewTarget.y = player.y - screenCenterY;
+  view.x = lerp(view.x, viewTarget.x, 0.1);
+  view.y = lerp(view.y, viewTarget.y, 0.1);
+  
   if(Key.justReleased(Key.r)){
     resetGame();
   }
@@ -227,7 +225,7 @@ window.addEventListener('mousedown', function (event) {
 } , false);
 window.addEventListener('mouseup', function (event) {
   cursor.isDown = false;
-  handleInput(event);
+ // handleInput(event);
 } , false);
 
 onclick=e=>{
@@ -295,6 +293,8 @@ function gameloop(){
 function handleInput(e){
   let screenX = Math.floor(e.pageX / screenFactor);
   let screenY = Math.floor(e.pageY / screenFactor);
-  player.move(screenX - view.x, screenY - view.y);
+  let worldY = screenY + view.y;
+  let worldX = screenX + view.x;
+  player.move(worldX, worldY);
 
 }
