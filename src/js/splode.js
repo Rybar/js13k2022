@@ -1,4 +1,5 @@
-function Splode(x,y,life, color){
+class Splode{
+    constructor(x,y,life, color){
     this.x = x;
     this.y = y;
     this.lifeMax = life;
@@ -6,7 +7,7 @@ function Splode(x,y,life, color){
     this.alive = true;
     this.color = color;
 }
-Splode.prototype.draw = function(){
+draw(){
    
     r.pat = r.dither[15- Math.floor( (this.life/this.lifeMax) * 15)]
     for(let i = Math.floor(this.life/10); i > 0; i--){
@@ -14,7 +15,7 @@ Splode.prototype.draw = function(){
     }r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life, this.color);
     r.pat = r.dither[0];
 }
-Splode.prototype.update = function(){
+update(){
     if(!this.alive){
         return
     }
@@ -25,5 +26,5 @@ Splode.prototype.update = function(){
         this.alive = false;
     }
 }
-
+}
 export default Splode;

@@ -16,6 +16,11 @@ class Player {
             x: 0.8,
             y: 0.8
         }
+        this.target = {
+            x: 0,
+            y: 0,
+            distance: 0
+        }
         this.alive = true;
     }
 
@@ -26,14 +31,23 @@ class Player {
     update(){
         this.x += this.velocity.x;
         this.y += this.velocity.y;
-        this.velocity.x *= this.drag.x;
-        this.velocity.y *= this.drag.y;
+        let xDelta = this.target.x - this.x;
+        let yDelta = this.target.y - this.y;
+
+        this.target.distance = Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+        
+        if(this.target.distance < 5){
+            this.velocity.x *= this.drag.x;
+            this.velocity.y *= this.drag.y;
+        }
         return 0;
     }
 
     move(targetX, targetY){
-        let xDelta = targetX - this.x;
-        let yDelta = targetY - this.y;
+        this.target.x = targetX;
+        this.target.y = targetY;
+        let xDelta = this.target.x - this.x;
+        let yDelta = this.target.y - this.y;
         let direction = Math.atan2(yDelta, xDelta);
         this.velocity.x = Math.cos(direction) * this.speed.x;
         this.velocity.y = Math.sin(direction) * this.speed.y;

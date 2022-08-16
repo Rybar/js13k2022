@@ -972,6 +972,11 @@
               x: 0.8,
               y: 0.8
           };
+          this.target = {
+              x: 0,
+              y: 0,
+              distance: 0
+          };
           this.alive = true;
       }
 
@@ -982,14 +987,23 @@
       update(){
           this.x += this.velocity.x;
           this.y += this.velocity.y;
-          this.velocity.x *= this.drag.x;
-          this.velocity.y *= this.drag.y;
+          let xDelta = this.target.x - this.x;
+          let yDelta = this.target.y - this.y;
+
+          this.target.distance = Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+          
+          if(this.target.distance < 5){
+              this.velocity.x *= this.drag.x;
+              this.velocity.y *= this.drag.y;
+          }
           return 0;
       }
 
       move(targetX, targetY){
-          let xDelta = targetX - this.x;
-          let yDelta = targetY - this.y;
+          this.target.x = targetX;
+          this.target.y = targetY;
+          let xDelta = this.target.x - this.x;
+          let yDelta = this.target.y - this.y;
           let direction = Math.atan2(yDelta, xDelta);
           this.velocity.x = Math.cos(direction) * this.speed.x;
           this.velocity.y = Math.sin(direction) * this.speed.y;
@@ -1178,7 +1192,8 @@
     }
   };
 
-  function Splode(x,y,life, color){
+  class Splode{
+      constructor(x,y,life, color){
       this.x = x;
       this.y = y;
       this.lifeMax = life;
@@ -1186,15 +1201,15 @@
       this.alive = true;
       this.color = color;
   }
-  Splode.prototype.draw = function(){
+  draw(){
      
       r.pat = r.dither[15- Math.floor( (this.life/this.lifeMax) * 15)];
       for(let i = Math.floor(this.life/10); i > 0; i--){
           r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life-i, this.color);
       }r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life, this.color);
       r.pat = r.dither[0];
-  };
-  Splode.prototype.update = function(){
+  }
+  update(){
       if(!this.alive){
           return
       }
@@ -1204,13 +1219,16 @@
       else {
           this.alive = false;
       }
-  };
+  }
+  }
 
   if(innerWidth < 800){
+    screenFactor = 2;
     w = innerWidth/2;
     h = innerHeight/2;
   }
   else {
+    screenFactor = 4;
     w = Math.floor(innerWidth/4);
     h = Math.floor(innerHeight/4);
   }
@@ -1275,6 +1293,12 @@
   const GAME = 1;
   const TITLESCREEN = 2;
 
+  cursor = {
+    x: 0,
+    y: 0,
+    isDown: false
+  };
+
   function initAudio(){
     audioCtx = new AudioContext;
     audioMaster = audioCtx.createGain();
@@ -1320,8 +1344,6 @@
     splodes.push(new Splode(Math.random()*w, Math.random()*h, Math.random()*30, Math.floor(Math.random()*64)));
     splodes.forEach(e=>e.update());
     pruneDead(splodes);
-
-    handleInput();
 
     player.update();
 
@@ -1380,7 +1402,7 @@
     }
     let text = "TITLE SCREEN";
     r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
-    text = "PRESS UP/W/Z TO PLAY";
+    text = "CLICK TO BEGIN";
     r.text([text, w/2-2, 120, 1, 3, 'center', 'top', 1, 22]);
 
 
@@ -1402,6 +1424,17 @@
     paused = false;
   }, false);
 
+  window.addEventListener('mousemove', function (event) {
+    if(cursor.isDown){handleInput(event);}} , false);
+  window.addEventListener('mousedown', function (event) {
+    cursor.isDown = true;
+    handleInput(event);
+  } , false);
+  window.addEventListener('mouseup', function (event) {
+    cursor.isDown = false;
+    handleInput(event);
+  } , false);
+
   onclick=e=>{
     x=e.pageX;y=e.pageY;
     paused = false;
@@ -1412,6 +1445,15 @@
             started = true;
           }
         break;
+
+        case TITLESCREEN: 
+        break;
+
+        case GAME:
+          
+        break;
+
+        case GAMEOVER: 
     }
   };
 
@@ -1445,10 +1487,11 @@
   }
 
 
-  function handleInput(){
-    if(Key.isDown(Key.UP) ){
-      player.move(player.x, player.y - 20);
-    }
+  function handleInput(e){
+    let screenX = Math.floor(e.pageX / screenFactor);
+    let screenY = Math.floor(e.pageY / screenFactor);
+    player.move(screenX - view.x, screenY - view.y);
+
   }
 
 }());

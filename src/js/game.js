@@ -10,10 +10,12 @@ import { playSound, Key } from './core/utils.js';
 import Splode from './splode.js';
 
 if(innerWidth < 800){
+  screenFactor = 2;
   w = innerWidth/2;
   h = innerHeight/2;
 }
 else {
+  screenFactor = 4;
   w = Math.floor(innerWidth/4);
   h = Math.floor(innerHeight/4);
 }
@@ -78,6 +80,12 @@ const PRELOAD = 0;
 const GAME = 1;
 const TITLESCREEN = 2;
 
+cursor = {
+  x: 0,
+  y: 0,
+  isDown: false
+}
+
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
@@ -128,8 +136,6 @@ function updateGame(){
   splodes.push(new Splode(Math.random()*w, Math.random()*h, Math.random()*30, Math.floor(Math.random()*64)));
   splodes.forEach(e=>e.update());
   pruneDead(splodes);
-
-  handleInput();
 
   player.update();
 
@@ -190,7 +196,7 @@ function titlescreen(){
   }
   let text = "TITLE SCREEN"
   r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
-  text = "PRESS UP/W/Z TO PLAY";
+  text = "CLICK TO BEGIN";
   r.text([text, w/2-2, 120, 1, 3, 'center', 'top', 1, 22]);
 
 
@@ -212,6 +218,18 @@ window.addEventListener('focus', function (event) {
   paused = false;
 }, false);
 
+window.addEventListener('mousemove', function (event) {
+  if(cursor.isDown){handleInput(event)};
+} , false);
+window.addEventListener('mousedown', function (event) {
+  cursor.isDown = true;
+  handleInput(event);
+} , false);
+window.addEventListener('mouseup', function (event) {
+  cursor.isDown = false;
+  handleInput(event);
+} , false);
+
 onclick=e=>{
   x=e.pageX;y=e.pageY;
   paused = false;
@@ -223,9 +241,15 @@ onclick=e=>{
           started = true;
         }
       break;
-      case 1: 
-      case 2: 
-      case 3: 
+
+      case TITLESCREEN: 
+      break;
+
+      case GAME:
+        
+      break;
+
+      case GAMEOVER: 
   }
 }
 
@@ -268,8 +292,9 @@ function gameloop(){
 }
 
 
-function handleInput(){
-  if(Key.isDown(Key.UP) ){
-    player.move(player.x, player.y - 20);
-  }
+function handleInput(e){
+  let screenX = Math.floor(e.pageX / screenFactor);
+  let screenY = Math.floor(e.pageY / screenFactor);
+  player.move(screenX - view.x, screenY - view.y);
+
 }
