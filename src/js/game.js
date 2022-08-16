@@ -163,18 +163,22 @@ function preload(){
  
   audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
   if(soundsReady == totalSounds){
-    audioTxt="ALL SOUNDS RENDERED.\nPRESS UP/W/Z TO CONTINUE";
+    audioTxt="ALL SOUNDS RENDERED.\nTAP OR CLICK TO CONTINUE";
   } else if (started){
     audioTxt = "SOUNDS RENDERING... " + soundsReady;
   } else {
     audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
   }
 
-  if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
-      //playSound(sounds.tada);
-      gamestate = GAME
+  // if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
+  //     //playSound(sounds.tada);
+  //     gamestate = GAME
     
-  }; 
+  // }; 
+  if(cursor.isDown && soundsReady == totalSounds){
+    gamestate = GAME;
+  }
+  
   r.render();
 }
 
