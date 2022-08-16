@@ -1,5 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './musicplayer.js';
+import Player from './entities/player.js';
 
 //sound assets
 import cellComplete from './sounds/cellComplete.js';
@@ -65,6 +66,7 @@ function gameInit(){
 
 window.t = 1;
 splodes = [];
+window.player = new Player(100, 100);
 
 sounds = {};
 soundsReady = 0;
@@ -127,6 +129,10 @@ function updateGame(){
   splodes.forEach(e=>e.update());
   pruneDead(splodes);
 
+  handleInput();
+
+  player.update();
+
   if(Key.justReleased(Key.r)){
     resetGame();
   }
@@ -134,9 +140,8 @@ function updateGame(){
 
 function drawGame(){
   r.clr(2, r.SCREEN)
-  let text = "GAME PLAY STATE BUT NO GAME HERE!\nPRESS R TO RESET GAME";
-  r.text([text, w/2-2, 20, 1, 3, 'center', 'top', 1, 22]);
   splodes.forEach(e=>e.draw());
+  player.draw();
   r.render();
 }
 
@@ -144,7 +149,7 @@ function resetGame(){
   window.t = 1;
   splodes = [];
   initGameData();
-  gamestate = 2;
+  gamestate = GAME;
 }
 
 function preload(){
@@ -162,8 +167,8 @@ function preload(){
   }
 
   if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
-      playSound(sounds.tada);
-      gamestate = TITLESCREEN
+      //playSound(sounds.tada);
+      gamestate = GAME
     
   }; 
   r.render();
@@ -263,3 +268,8 @@ function gameloop(){
 }
 
 
+function handleInput(){
+  if(Key.isDown(Key.UP) ){
+    player.move(player.x, player.y - 20);
+  }
+}
