@@ -15,8 +15,8 @@ class RetroBuffer {
     //relative drawing position and pencolor, for drawing functions that require it.
     this.cursorX = 0;
     this.cursorY = 0;
-    this.cursorColor = 23;
-    this.cursorColor2 = 25;
+    this.cursorColor = 22;
+    this.cursorColor2 = 64;
     this.stencil = false;
     this.stencilSource = this.PAGE_2;
     this.stencilOffset = 0;
@@ -78,15 +78,15 @@ class RetroBuffer {
       (this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES));
 
     //Brightness LUT
-    this.brightness = [];
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 64; j++) {
-        this.brightness[i * 64 + j] = this.colors.indexOf(
-          this.atlas[i * 64 + j]
-        );
-      }
+    // this.brightness = [];
+    // for (let i = 0; i < 6; i++) {
+    //   for (let j = 0; j < 64; j++) {
+    //     this.brightness[i * 64 + j] = this.colors.indexOf(
+    //       this.atlas[i * 64 + j]
+    //     );
+    //   }
       //ram[address + i] = colors.indexOf(data[i]);
-    }
+    //}
   }
 
   //--------------graphics functions----------------
@@ -101,7 +101,7 @@ class RetroBuffer {
     this.ram.fill(color, page, page + this.PAGESIZE);
   }
 
-  pset(x, y, color, color2 = 64) {
+  pset(x, y, color, color2 = this.cursorColor2) {
     x = x | 0;
     y = y | 0;
     color = this.stencil

@@ -6,8 +6,9 @@ import Player from './entities/player.js';
 import cellComplete from './sounds/cellComplete.js';
 import tada from './sounds/tada.js';
 
-import { playSound, Key, lerp } from './core/utils.js';
+import { playSound, Key, lerp, randInt } from './core/utils.js';
 import Splode from './splode.js';
+import Map from './entities/map.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -20,9 +21,11 @@ else {
   h = Math.floor(innerHeight/4);
 }
 
-view = { x: 0, y: 0 }
-cursor = { x: 0, y: 0, isDown: false }
-viewTarget = { x: 0, y: 0 }
+view = { x: 0, y: 0 };
+cursor = { x: 0, y: 0, isDown: false };
+viewTarget = { x: 0, y: 0 };
+
+
 
 window.t = 1;
 splodes = [];
@@ -40,8 +43,6 @@ debugText = "";
 const PRELOAD = 0;
 const GAME = 1;
 const TITLESCREEN = 2;
-
-
 
 const styleSheet = document.createElement("style")
 styleSheet.type = "text/css"
@@ -82,6 +83,13 @@ function gameInit(){
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
+  window.map = new Map(100, 100, 0, 0);
+  map.cells.forEach(e=>{
+    e.type = randInt(0,1);
+    e.fill.color1 = randInt(14,17);
+    e.fill.color2 = randInt(14,17);
+    e.fill.dither = r.dither[randInt(0,15)]
+  })
 }
 
 function initAudio(){
@@ -126,7 +134,7 @@ function initAudio(){
 
 function updateGame(){
   t+=1;
-  splodes.push(new Splode(Math.random()*w, Math.random()*h, Math.random()*30, Math.floor(Math.random()*64)));
+  splodes.push(new Splode(Math.random()*w, Math.random()*h, Math.random()*30, 22));
   splodes.forEach(e=>e.update());
   pruneDead(splodes);
 
@@ -145,6 +153,7 @@ function updateGame(){
 function drawGame(){
   r.clr(2, r.SCREEN)
   splodes.forEach(e=>e.draw());
+  map.draw();
   player.draw();
   r.render();
 }
@@ -178,7 +187,7 @@ function preload(){
   if(cursor.isDown && soundsReady == totalSounds){
     gamestate = GAME;
   }
-  
+
   r.render();
 }
 
@@ -242,6 +251,10 @@ window.addEventListener('touchstart', function (event) {
   }
 }, false);
 
+window.addEventListener('touchend', function (event) {
+  cursor.isDown = false;
+} , false);
+
 onWindowInteraction = function(e){
   x=e.pageX;y=e.pageY;
   paused = false;
@@ -286,7 +299,6 @@ function pruneScreen(entitiesArray){
   }
 }
 
-
 function gameloop(){
   if(1==1){
     switch(gamestate){
@@ -305,7 +317,6 @@ function gameloop(){
     requestAnimationFrame(gameloop);
   }
 }
-
 
 function handleInput(e){
   let screenX = Math.floor(e.pageX / screenFactor);
