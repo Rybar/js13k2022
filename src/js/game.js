@@ -6,7 +6,7 @@ import Player from './entities/player.js';
 import cellComplete from './sounds/cellComplete.js';
 import tada from './sounds/tada.js';
 
-import { playSound, Key, lerp, randInt } from './core/utils.js';
+import { playSound, Key, lerp, randInt, randFloat } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
 
@@ -83,13 +83,21 @@ function gameInit(){
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
-  window.map = new Map(100, 100, 0, 0);
+  let chanceToStartAlive = 0.37;
+  let simulationSteps = 3;
+  let birthLimit = 4;
+  let deathLimit = 3;
+
+  window.map = new Map(200,200, 0,0)
   map.cells.forEach(e=>{
-    e.type = randInt(0,1);
-    e.fill.color1 = randInt(14,17);
-    e.fill.color2 = randInt(14,17);
+    e.type = randFloat(0,1) < chanceToStartAlive ? 1 : 0;
+    e.fill.color1 = randInt(12,16);
+    e.fill.color2 = randInt(12,16);
     e.fill.dither = r.dither[randInt(0,15)]
   })
+  for(let i = 0; i < simulationSteps; i++){
+    map.doSimulationStep(birthLimit, deathLimit);
+  }
 }
 
 function initAudio(){
@@ -134,7 +142,6 @@ function initAudio(){
 
 function updateGame(){
   t+=1;
-  splodes.push(new Splode(Math.random()*w, Math.random()*h, Math.random()*30, 22));
   splodes.forEach(e=>e.update());
   pruneDead(splodes);
 

@@ -38,7 +38,6 @@ class Player {
         let direction = Math.atan2(yDelta, xDelta);
         this.velocity.x = Math.cos(direction) * this.speed.x;
         this.velocity.y = Math.sin(direction) * this.speed.y;
-        playSound(sounds.tada);
     }
 }
 
