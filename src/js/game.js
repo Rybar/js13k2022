@@ -1,6 +1,7 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './musicplayer.js';
 import Player from './entities/player.js';
+import Fan from './entities/fan.js';
 
 //sound assets
 import cellComplete from './sounds/cellComplete.js';
@@ -16,19 +17,23 @@ if(innerWidth < 800){
   h = innerHeight/2;
 }
 else {
-  screenFactor = 4;
-  w = Math.floor(innerWidth/4);
-  h = Math.floor(innerHeight/4);
+  screenFactor = 3;
+  w = Math.floor(innerWidth/3);
+  h = Math.floor(innerHeight/3);
 }
 
 view = { x: 0, y: 0 };
 cursor = { x: 0, y: 0, isDown: false };
 viewTarget = { x: 0, y: 0 };
+then = 0; elapsed = 0; now = 0;
+framesPerSecond = 60;
+fpsInterval = 1000 / framesPerSecond;
 
 
 
 window.t = 1;
 splodes = [];
+fans = [];
 window.player = new Player(100, 100);
 screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
@@ -78,25 +83,35 @@ function gameInit(){
   window.playSound = playSound;
   gamebox = document.getElementById("game");
   gamebox.appendChild(r.c);
-  gameloop();
+  mainLoop();
 }
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
-  let chanceToStartAlive = 0.37;
-  let simulationSteps = 3;
-  let birthLimit = 4;
-  let deathLimit = 3;
+  let chanceToStartAlive = 0.55;
+  let simulationSteps = 5;
+  let birthLimit = 5;
+  let deathLimit = 4;
+  let numberOfFans = 10;
 
   window.map = new Map(200,200, 0,0)
   map.cells.forEach(e=>{
     e.type = randFloat(0,1) < chanceToStartAlive ? 1 : 0;
-    e.fill.color1 = randInt(12,16);
-    e.fill.color2 = randInt(12,16);
-    e.fill.dither = r.dither[randInt(0,15)]
   })
   for(let i = 0; i < simulationSteps; i++){
     map.doSimulationStep(birthLimit, deathLimit);
+  }
+
+//place fans--------------------------------------------------------------
+  for(let i = 0; i < numberOfFans; i++){
+    for(let numberOfTries = 0; numberOfTries < 100; numberOfTries++){
+      let x = randInt(0, map.w);
+      let y = randInt(0, map.h);
+      if(map.cells[x + y * map.w].type == 1){
+        fans.push(new Fan(x * map.cellSize, y * map.cellSize));
+        break;
+      }
+    }
   }
 }
 
@@ -158,9 +173,10 @@ function updateGame(){
 }
 
 function drawGame(){
-  r.clr(2, r.SCREEN)
-  splodes.forEach(e=>e.draw());
+  r.clr(1, r.SCREEN)
   map.draw();
+  fans.forEach(e=>e.draw());
+  splodes.forEach(e=>e.draw());
   player.draw();
   r.render();
 }
@@ -245,12 +261,12 @@ window.addEventListener('mousedown', function (event) {
 } , false);
 window.addEventListener('mouseup', function (event) {
   cursor.isDown = false;
- // handleInput(event);
+  handleInput(event);
 } , false);
 
 window.addEventListener('touchstart', function (event) {
   
-  if(gamestate = PRELOAD){
+  if(gamestate == PRELOAD){
     onWindowInteraction(event); 
   } else {
     cursor.isDown = true;
@@ -306,7 +322,7 @@ function pruneScreen(entitiesArray){
   }
 }
 
-function gameloop(){
+function gameLoop(){
   if(1==1){
     switch(gamestate){
       case PRELOAD: 
@@ -320,9 +336,29 @@ function gameloop(){
         titlescreen();
         break;
     }
-    Key.update();
-    requestAnimationFrame(gameloop);
   }
+}
+
+function mainLoop(){
+
+  requestAnimationFrame(mainLoop);
+
+  // calc elapsed time since last loop
+  now = Date.now();
+  elapsed = (now - then);
+
+  // if enough time has elapsed, draw the next frame
+  if (elapsed > fpsInterval) {
+
+      // Get ready for next frame by setting then=now, but also adjust for your
+      // specified fpsInterval not being a multiple of RAF's interval (16.7ms) <--used to be pretty normal
+      //to expect 60fps.  nowadays, it could be 120fps or even 240fps.  So, we need to adjust for that.
+      then = now - (elapsed % fpsInterval);
+
+      // Put your drawing code here
+      gameLoop();
+  }
+  Key.update();
 }
 
 function handleInput(e){
@@ -330,6 +366,10 @@ function handleInput(e){
   let screenY = Math.floor(e.pageY / screenFactor);
   let worldY = screenY + view.y;
   let worldX = screenX + view.x;
-  player.move(worldX, worldY);
-
+  if(!cursor.isDown){
+    player.move(worldX, worldY);
+  }
+  else{
+    splodes.push(new Splode(worldX, worldY, randInt(5, 10), randInt(0,63)));
+  }
 }
