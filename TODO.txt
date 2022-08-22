@@ -1,43 +1,46 @@
-Minimum to test game mechanics
--------------------
-player
-player movement
-cam movement
-tilemap
-fan enemy entity
-machine enemy entity
-alien enemy entity
-vine attack
-    path check
-fan/player attack interaction
-fan/machine dependency interaction
-machine explode/enemies interaction
-vine attack/enemies interaction
-vine / machiney terrain interaction -?
+3d sprite/voxel/splat thing in canvas2D
 
-MVP finished game
--------------------
-map generation
-    above ground
-    hybrid with horizon
-    below ground
+figure out 3d maths for actual typical flight / fps controls
+w/z flys 'into' screen
+a d strafes left-right relative to look direction
+mousemove changes look at direction
 
-level progression through level types
-scoring
-end-game 
-sound fx
-one music track
+splat class
+    vertex
+    colors + dither
+    size
+    shape type
+        circle
+        point
+        square
+        sprite
 
-Nice to Haves
-different music for Title
-procedural animation for player
-nice looking vines with leaves
-flowers post-attack
+splat rendering
+    scaled sprite
+    triangle
+    filled triangle
+    depth based color
 
+splat mesh class
+    set of splats 
+    transform
+
+scale and rotation of shapes
+
+functions needed:
+    generate points along a line
+
+    generate point arrays for basic geometry
+        platonic solids
 
 
+    generate evenly distributed random splats on a surface
 
+    animate transform of splat meshes
 
+    animate size of splats
+
+instance splat meshes
 
 
 

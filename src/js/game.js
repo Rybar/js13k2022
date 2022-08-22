@@ -10,7 +10,7 @@ import tada from './sounds/tada.js';
 import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
-import { matrix_rotate, project3D, Vert, Splat, shapes } from './core/threedee.js';
+import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint } from './core/threedee.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -37,6 +37,7 @@ window.t = 1;
 splodes = [];
 fans = [];
 splats = [];
+splatLines = [];
 window.player = new Player(100, 100);
 screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
@@ -92,29 +93,54 @@ function gameInit(){
 function initGameData(){
 //map generation, pre-drawing, etc would go here
   
-  for(let i = 0; i < 8000; i++){
-    let spread = 90;
+  for(let i = 0; i < 6000; i++){
+    let spread = 50;
     let color1 = randInt(0, 63);
     let color2 = color1++
-    let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(0, spread), 
+    let point = randomSpherePoint(0,0,0, spread);
+
+
+    let splat = new Splat(
+      point.x, point.y, point.z,
     {
       fill: { color1: color1, color2: color2, pattern: r.dither[8] },
-      size: 20,
-      shape: randInt(0, 1)
+      shape: shapes.SQUARE,
+      size: 20
     });
     splats.push( splat );
   }
+
+  for(let i = 0; i < 10000; i++){
+    let spread = 250;
+    let color1 = randInt(16, 19);
+    let color2 = color1++
+    let point = randomSpherePoint(0,0,0, spread);
+
+
+    let splat = new Splat(
+      point.x, point.y, point.z,
+    {
+      fill: { color1: color1, color2: color2, pattern: r.dither[0] },
+      shape: shapes.POINT,
+      
+    });
+    splats.push( splat );
+  }
+ 
   splats.sort(function(a,b){ return a.vert.z - b.vert.z; });
+
+
+
   //camX, camY, camZ, cx, cy, and scale.
   camera = {
     camX: 0,
     camY: 0,
-    camZ: -1,
+    camZ: -200,
     pitch: 0,
     yaw: 0,
     cx: screenCenterX,
     cy: screenCenterY,
-    scale: 200
+    scale: 500
   }
 }
 
@@ -162,10 +188,10 @@ function updateGame(){
   t+=1;
   splodes.forEach(e=>e.update());
   splats.forEach(e=>{
-    // newPoint = matrix_rotate(e, 0, 0.01, 0 )
-    // e.x = newPoint.x;
-    // e.y = newPoint.y;
-    // e.z = newPoint.z;
+    newPoint = matrix_rotate(e.vert, 0, 0, 0 )
+    e.vert.x = newPoint.x;
+    e.vert.y = newPoint.y;
+    e.vert.z = newPoint.z;
   })
 
   pruneDead(splodes);
@@ -182,8 +208,8 @@ function updateGame(){
   if(Key.justReleased(Key.r)){
     resetGame();
   }
-  if(Key.isDown(Key.w)){ camera.camZ += 0.1; }
-  if(Key.isDown(Key.s)){ camera.camZ -= 0.1; }
+  if(Key.isDown(Key.w)){ camera.camZ += 0.8; }
+  if(Key.isDown(Key.s)){ camera.camZ -= 0.8; }
   if(Key.isDown(Key.q)){ camera.yaw += 0.01; }
   let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
   debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;

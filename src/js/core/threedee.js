@@ -1,4 +1,6 @@
 //global r = RetroBuffer
+
+
 export function translateShape(x, y, z, shape){
     
     shape.x += x;
@@ -103,16 +105,22 @@ export function Vert(x,y,z){
 export const shapes = {
     CIRCLE: 0,
     SQUARE: 1,
+    POINT: 2, 
+
 }
+
+export const DRAWDISTANCE = 1000;
+export const FADEDISTANCE = 950;
+export const FADEDISTANCE2 = 975;
 
 export class Splat{
     constructor(x,y,z, opt={
         fill: {
             color1: 22,
-            color2: 23,
+            color2: 0,
             pattern: r.dither[0]
         },
-        shape: shapes.CIRCLE,
+        shape: shapes.point,
         size: 1
     }){
         this.vert = new Vert(x,y,z);
@@ -122,14 +130,20 @@ export class Splat{
     }
     draw(camera){
         let screenPosition = project3D(this.vert.x, this.vert.y, this.vert.z, camera);
-        if(screenPosition.d != -1){
+        if(screenPosition.d != -1 && screenPosition.d < DRAWDISTANCE){
             var {x,y} = screenPosition;
             var size = this.size;
             var shape = this.shape;
             var fill = this.fill; 
             var {color1, color2, pattern} = fill;
+            if(screenPosition.d > FADEDISTANCE){
+                color1 = 2;
+            }
+            if(screenPosition.d > FADEDISTANCE2){
+                color2 = 2; color1 = 1;
+            }
 
-            var scale =  10/screenPosition.d;
+            var scale =  40/screenPosition.d;
             var screenSize = size * scale;
             
             if(shape == shapes.CIRCLE){
@@ -141,7 +155,7 @@ export class Splat{
                 }else{
                     r.fillCircle(x,y,screenSize, color1, screenPosition.d);
                     r.pat = r.dither[0];
-                    r.circle(x,y, screenSize, 0, screenPosition.d);
+                    //r.circle(x,y, screenSize, 0, screenPosition.d);
                 }
                 
                 r.cursorColor2 = 64;
@@ -157,23 +171,44 @@ export class Splat{
                     color1,
                     screenPosition.d
                     );
-                r.cursorColor2 = 64;
-                r.pat = r.dither[0];
-                r.rect(
-                    x-screenSize/2,
-                    y-screenSize/2,
-                    size*scale,
-                    size*scale,
-                    0,
-                    screenPosition.d
-                    )
+            }else if(shape == shapes.POINT){
+                
+                r.pat = pattern
+                r.pset(x,y,color1, screenPosition.d);
+                
             }
+            r.cursorColor2 = 64;
+            r.pat = r.dither[0];
         }
-        scale++;
     }
 }
 
-export function Seg(x1,y1,z1,x2,y2,z2){
+export function splatLine(x1,y1,z1,x2,y2,z2){
     this.a = new Vert(x1,y1,z1);
     this.b = new Vert(x2,y2,z2);
+    //generate splats along the line
+    this.splats = [];
+    var dx = this.b.x - this.a.x;
+    var dy = this.b.y - this.a.y;
+    var dz = this.b.z - this.a.z;
+    var d = Math.sqrt(dx*dx+dy*dy+dz*dz);
+    var n = Math.floor(d/0.1);
+    for(var i=0;i<n;i++){
+        var x = this.a.x + dx*i/n;
+        var y = this.a.y + dy*i/n;
+        var z = this.a.z + dz*i/n;
+        this.splats.push(new Splat(x,y,z));
+    }
+    return splats
 }
+
+export function randomSpherePoint(x0,y0,z0,radius){
+    var u = Math.random();
+    var v = Math.random();
+    var theta = 2 * Math.PI * u;
+    var phi = Math.acos(2 * v - 1);
+    var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
+    var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
+    var z = z0 + (radius * Math.cos(phi));
+    return new Vert(x,y,z);
+ }

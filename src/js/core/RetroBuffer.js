@@ -104,6 +104,9 @@ class RetroBuffer {
   }
 
   pset(x, y, color, z = 0) {
+    if ((x < 0) | (x > this.WIDTH - 1)) return;
+    if ((y < 0) | (y > this.HEIGHT - 1)) return;
+    if(this.zbuf[y * this.WIDTH + x] < z) return;
     x = x | 0;
     y = y | 0;
     color = this.stencil
@@ -113,9 +116,6 @@ class RetroBuffer {
     let mask = this.pat & Math.pow(2, px)
     let pcolor = mask ? color : this.cursorColor2;
     if (pcolor == 64) return;
-    if ((x < 0) | (x > this.WIDTH - 1)) return;
-    if ((y < 0) | (y > this.HEIGHT - 1)) return;
-    if(this.zbuf[y * this.WIDTH + x] < z) return;
     this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
     this.zbuf[y * this.WIDTH + x] = z;
   }
@@ -125,7 +125,6 @@ class RetroBuffer {
     y = y | 0;
     return this.ram[page + x + y * this.WIDTH];
   }
-
   line(x1, y1, x2, y2, color, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
