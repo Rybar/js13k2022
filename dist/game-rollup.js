@@ -286,8 +286,6 @@
     }
 
     rect(x, y, w, h, color, z=0) {
-      color = color | this.cursorColor;
-      //let { line } = this;
       let x1 = x | 0,
         y1 = y | 0,
         x2 = (x + w) | 0,
@@ -1333,15 +1331,15 @@
               if(shape == shapes.CIRCLE){
                   r.cursorColor2 = color2;
                   r.pat = pattern;
-                  if(screenSize > size);else {
-                      if(screenSize < 1){
-                          r.pset(x,y,color1);
-                      }else {
-                          r.fillCircle(x,y,screenSize, color1, screenPosition.d);
-                          r.pat = r.dither[0];
-                          r.circle(x,y, screenSize, 0, screenPosition.d);
-                      }
+                  
+                  if(screenSize < 1){
+                      r.pset(x,y,color1);
+                  }else {
+                      r.fillCircle(x,y,screenSize, color1, screenPosition.d);
+                      r.pat = r.dither[0];
+                      r.circle(x,y, screenSize, 0, screenPosition.d);
                   }
+                  
                   r.cursorColor2 = 64;
                   r.pat = r.dither[0];
               }else if(shape == shapes.SQUARE){
@@ -1357,6 +1355,14 @@
                       );
                   r.cursorColor2 = 64;
                   r.pat = r.dither[0];
+                  r.rect(
+                      x-screenSize/2,
+                      y-screenSize/2,
+                      size*scale,
+                      size*scale,
+                      0,
+                      screenPosition.d
+                      );
               }
           }
           scale++;
@@ -1442,13 +1448,16 @@
 
   function initGameData(){
   //map generation, pre-drawing, etc would go here
-    for(let i = 0; i < 3200; i++){
-      let spread = 60;
-      let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(-spread, spread), 
+    
+    for(let i = 0; i < 8000; i++){
+      let spread = 90;
+      let color1 = randInt(0, 63);
+      let color2 = color1++;
+      let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(0, spread), 
       {
-        fill: { color1: 14, color2: 15, pattern: r.dither[randInt(0, 16)] },
+        fill: { color1: color1, color2: color2, pattern: r.dither[8] },
         size: 20,
-        shape: shapes.CIRCLE
+        shape: randInt(0, 1)
       });
       splats.push( splat );
     }
@@ -1462,7 +1471,7 @@
       yaw: 0,
       cx: screenCenterX,
       cy: screenCenterY,
-      scale: 70
+      scale: 200
     };
   }
 
@@ -1532,7 +1541,7 @@
     }
     if(Key.isDown(Key.w)){ camera.camZ += 0.1; }
     if(Key.isDown(Key.s)){ camera.camZ -= 0.1; }
-    if(Key.isDown(Key.q)){ camera.pitch += 0.01; }
+    if(Key.isDown(Key.q)){ camera.yaw += 0.01; }
     let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
     debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
   }

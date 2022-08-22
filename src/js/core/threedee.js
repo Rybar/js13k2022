@@ -135,17 +135,15 @@ export class Splat{
             if(shape == shapes.CIRCLE){
                 r.cursorColor2 = color2;
                 r.pat = pattern
-                if(screenSize > size){ 
-
+                
+                if(screenSize < 1){
+                    r.pset(x,y,color1);
                 }else{
-                    if(screenSize < 1){
-                        r.pset(x,y,color1);
-                    }else{
-                        r.fillCircle(x,y,screenSize, color1, screenPosition.d);
-                        r.pat = r.dither[0];
-                        r.circle(x,y, screenSize, 0, screenPosition.d);
-                    }
+                    r.fillCircle(x,y,screenSize, color1, screenPosition.d);
+                    r.pat = r.dither[0];
+                    r.circle(x,y, screenSize, 0, screenPosition.d);
                 }
+                
                 r.cursorColor2 = 64;
                 r.pat = r.dither[0];
             }else if(shape == shapes.SQUARE){
@@ -161,6 +159,14 @@ export class Splat{
                     );
                 r.cursorColor2 = 64;
                 r.pat = r.dither[0];
+                r.rect(
+                    x-screenSize/2,
+                    y-screenSize/2,
+                    size*scale,
+                    size*scale,
+                    0,
+                    screenPosition.d
+                    )
             }
         }
         scale++;

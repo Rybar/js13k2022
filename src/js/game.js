@@ -91,13 +91,16 @@ function gameInit(){
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
-  for(let i = 0; i < 3200; i++){
-    let spread = 60;
-    let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(-spread, spread), 
+  
+  for(let i = 0; i < 8000; i++){
+    let spread = 90;
+    let color1 = randInt(0, 63);
+    let color2 = color1++
+    let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(0, spread), 
     {
-      fill: { color1: 14, color2: 15, pattern: r.dither[randInt(0, 16)] },
+      fill: { color1: color1, color2: color2, pattern: r.dither[8] },
       size: 20,
-      shape: shapes.CIRCLE
+      shape: randInt(0, 1)
     });
     splats.push( splat );
   }
@@ -111,7 +114,7 @@ function initGameData(){
     yaw: 0,
     cx: screenCenterX,
     cy: screenCenterY,
-    scale: 70
+    scale: 200
   }
 }
 
@@ -181,7 +184,7 @@ function updateGame(){
   }
   if(Key.isDown(Key.w)){ camera.camZ += 0.1; }
   if(Key.isDown(Key.s)){ camera.camZ -= 0.1; }
-  if(Key.isDown(Key.q)){ camera.pitch += 0.01; }
+  if(Key.isDown(Key.q)){ camera.yaw += 0.01; }
   let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
   debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
 }

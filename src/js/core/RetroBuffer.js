@@ -284,8 +284,6 @@ class RetroBuffer {
   }
 
   rect(x, y, w, h, color, z=0) {
-    color = color | this.cursorColor;
-    //let { line } = this;
     let x1 = x | 0,
       y1 = y | 0,
       x2 = (x + w) | 0,
