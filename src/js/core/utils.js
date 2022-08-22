@@ -7,7 +7,7 @@ export function randFloat(min, max) {
 }
 
 export function choice(values) {
-  return values[rand(0, values.length - 1)];
+  return values[randInt(0, values.length - 1)];
 };
 export function lerp(a, b, x){
    return a + (b -a ) * x;
@@ -69,6 +69,7 @@ export const Key = {
   x: 88,
   f: 70,
   p: 80,
+  q: 81,
   r: 82,
   m: 77,
   h: 72,
@@ -95,4 +96,9 @@ export const Key = {
       this._released = {};
   }
 };
+
+
+
+
+
 

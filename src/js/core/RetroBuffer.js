@@ -71,11 +71,12 @@ class RetroBuffer {
 
     this.ctx.imageSmoothingEnabled = false;
 
-    (this.imageData = this.ctx.getImageData(0, 0, this.WIDTH, this.HEIGHT)),
-      (this.buf = new ArrayBuffer(this.imageData.data.length)),
-      (this.buf8 = new Uint8Array(this.buf)),
-      (this.data = new Uint32Array(this.buf)),
-      (this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES));
+    this.imageData = this.ctx.getImageData(0, 0, this.WIDTH, this.HEIGHT),
+      this.buf = new ArrayBuffer(this.imageData.data.length),
+      this.buf8 = new Uint8Array(this.buf),
+      this.data = new Uint32Array(this.buf),
+      this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES);
+      this.zbuf = new Float64Array(this.WIDTH * this.HEIGHT);
 
     //Brightness LUT
     // this.brightness = [];
@@ -99,22 +100,24 @@ class RetroBuffer {
 
   clr(color, page) {
     this.ram.fill(color, page, page + this.PAGESIZE);
+    this.zbuf.fill(99999999, 0, this.WIDTH * this.HEIGHT);
   }
 
-  pset(x, y, color, color2 = this.cursorColor2) {
+  pset(x, y, color, z = 0) {
     x = x | 0;
     y = y | 0;
     color = this.stencil
       ? this.pget(x, y, this.stencilSource) + this.stencilOffset
       : (color | 0) % 64;
     let px = (y % 4) * 4 + (x % 4);
-    let mask = this.pat & Math.pow(2, px);
-    let pcolor = mask ? color : color2;
+    let mask = this.pat & Math.pow(2, px)
+    let pcolor = mask ? color : this.cursorColor2;
     if (pcolor == 64) return;
     if ((x < 0) | (x > this.WIDTH - 1)) return;
     if ((y < 0) | (y > this.HEIGHT - 1)) return;
-
+    if(this.zbuf[y * this.WIDTH + x] < z) return;
     this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
+    this.zbuf[y * this.WIDTH + x] = z;
   }
 
   pget(x, y, page = 0) {
@@ -123,7 +126,7 @@ class RetroBuffer {
     return this.ram[page + x + y * this.WIDTH];
   }
 
-  line(x1, y1, x2, y2, color) {
+  line(x1, y1, x2, y2, color, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
     var dy = y2 - y1;
@@ -145,7 +148,7 @@ class RetroBuffer {
     dy <<= 1; // dy is now 2*dy
     dx <<= 1; // dx is now 2*dx
 
-    this.pset(x1, y1, color);
+    this.pset(x1, y1, color, z);
     if (dx > dy) {
       var fraction = dy - (dx >> 1); // same as 2*dy - dx
       while (x1 != x2) {
@@ -155,7 +158,7 @@ class RetroBuffer {
         }
         x1 += stepx;
         fraction += dy; // same as fraction -= 2*dy
-        this.pset(x1, y1, color);
+        this.pset(x1, y1, color, z);
       }
     } else {
       fraction = dx - (dy >> 1);
@@ -166,12 +169,12 @@ class RetroBuffer {
         }
         y1 += stepy;
         fraction += dx;
-        this.pset(x1, y1, color);
+        this.pset(x1, y1, color, z);
       }
     }
   }
 
-  tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0) {
+  tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
     var dy = y2 - y1;
@@ -211,7 +214,7 @@ class RetroBuffer {
     }
   }
 
-  circle(xm, ym, r, color) {
+  circle(xm, ym, r, color, z=0) {
     xm = xm | 0;
     ym = ym | 0;
     r = r | 0;
@@ -221,13 +224,13 @@ class RetroBuffer {
       err = 2 - 2 * r;
     /* II. Quadrant */
     do {
-      this.pset(xm - x, ym + y, color);
+      this.pset(xm - x, ym + y, color, z);
       /*   I. Quadrant */
-      this.pset(xm - y, ym - x, color);
+      this.pset(xm - y, ym - x, color, z);
       /*  II. Quadrant */
-      this.pset(xm + x, ym - y, color);
+      this.pset(xm + x, ym - y, color, z);
       /* III. Quadrant */
-      this.pset(xm + y, ym + x, color);
+      this.pset(xm + y, ym + x, color, z);
       /*  IV. Quadrant */
       r = err;
       if (r <= y) err += ++y * 2 + 1;
@@ -237,7 +240,7 @@ class RetroBuffer {
     } while (x < 0);
   }
 
-  fillCircle(xm, ym, r, color) {
+  fillCircle(xm, ym, r, color, z=0) {
     xm = xm | 0;
     ym = ym | 0;
     r = r | 0;
@@ -250,15 +253,15 @@ class RetroBuffer {
       err = 2 - 2 * r;
     /* II. Quadrant */
     do {
-      this.line(xm - x, ym - y, xm + x, ym - y, color);
-      this.line(xm - x, ym + y, xm + x, ym + y, color);
+      this.line(xm - x, ym - y, xm + x, ym - y, color, z);
+      this.line(xm - x, ym + y, xm + x, ym + y, color, z);
       r = err;
       if (r <= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
     } while (x < 0);
   }
 
-  tfillCircle(xm, ym, r, colorOffset = 0) {
+  tfillCircle(xm, ym, r, colorOffset = 0, z=0) {
     xm = xm | 0;
     ym = ym | 0;
     r = r | 0;
@@ -272,15 +275,15 @@ class RetroBuffer {
       err = 2 - 2 * r;
     /* II. Quadrant */
     do {
-      this.tline(xm - x, ym - y, xm + x, ym - y, offX, offY, colorOffset);
-      this.tline(xm - x, ym + y, xm + x, ym + y, offX, offY, colorOffset);
+      this.tline(xm - x, ym - y, xm + x, ym - y, offX, offY, colorOffset, z);
+      this.tline(xm - x, ym + y, xm + x, ym + y, offX, offY, colorOffset, z);
       r = err;
       if (r <= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
     } while (x < 0);
   }
 
-  rect(x, y, w, h, color) {
+  rect(x, y, w, h, color, z=0) {
     color = color | this.cursorColor;
     //let { line } = this;
     let x1 = x | 0,
@@ -288,13 +291,13 @@ class RetroBuffer {
       x2 = (x + w) | 0,
       y2 = (y + h) | 0;
 
-    this.line(x1, y1, x2, y1, color);
-    this.line(x2, y1, x2, y2, color);
-    this.line(x1, y2, x2, y2, color);
-    this.line(x1, y1, x1, y2, color);
+    this.line(x1, y1, x2, y1, color, z);
+    this.line(x2, y1, x2, y2, color, z);
+    this.line(x1, y2, x2, y2, color, z);
+    this.line(x1, y1, x1, y2, color, z);
   }
 
-  fillRect(x, y, w, h, color) {
+  fillRect(x, y, w, h, color, z=0) {
     let x1 = x | 0,
       y1 = y | 0,
       x2 = ((x + w) | 0) - 1,
@@ -302,15 +305,15 @@ class RetroBuffer {
     color = color;
 
     var i = Math.abs(y2 - y1);
-    this.line(x1, y1, x2, y1, color);
+    this.line(x1, y1, x2, y1, color, z);
 
     if (i > 0) {
       while (--i) {
-        this.line(x1, y1 + i, x2, y1 + i, color);
+        this.line(x1, y1 + i, x2, y1 + i, color, z);
       }
     }
 
-    this.line(x1, y2, x2, y2, color);
+    this.line(x1, y2, x2, y2, color, z);
   }
 
   sspr(
@@ -323,7 +326,8 @@ class RetroBuffer {
     dw = 32,
     dh = 32,
     flipx = false,
-    flipy = false
+    flipy = false,
+    z=0
   ) {
     var xratio = sw / dw;
     var yratio = sh / dh;
@@ -369,7 +373,7 @@ class RetroBuffer {
     }
   }
 
-  triangle(p1, p2, p3, color) {
+  triangle(p1, p2, p3, color, z=0) {
     this.line(p1.x, p1.y, p2.x, p2.y, color);
     this.line(p2.x, p2.y, p3.x, p3.y, color);
     this.line(p3.x, p3.y, p1.x, p1.y, color);

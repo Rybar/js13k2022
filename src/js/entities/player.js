@@ -1,9 +1,10 @@
 import Splode from "../splode.js";
 import { randInt } from "../core/utils.js";
 class Player {
-    constructor(x, y) {
+    constructor(x, y, z=0) {
         this.x = x;
         this.y = y;
+        this.z = z;
         this.width = 8;
         this.height = 8;
         this.speed = {x: 2, y: 2}

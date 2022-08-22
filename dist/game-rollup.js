@@ -1,1 +1,1732 @@
-!function(){class e{constructor(t,e,i,s){this.WIDTH=t,this.HEIGHT=e,this.PAGESIZE=this.WIDTH*this.HEIGHT,this.PAGES=s,this.atlas=i,this.SCREEN=0,this.PAGE_1=this.PAGESIZE,this.PAGE_2=2*this.PAGESIZE,this.PAGE_3=3*this.PAGESIZE,this.PAGE_4=4*this.PAGESIZE,this.cursorX=0,this.cursorY=0,this.cursorColor=22,this.cursorColor2=64,this.stencil=!1,this.stencilSource=this.PAGE_2,this.stencilOffset=0,this.colors=this.atlas.slice(0,64),this.palDefault=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63],this.c=document.createElement("canvas"),this.c.width=this.WIDTH,this.c.height=this.HEIGHT,this.ctx=this.c.getContext("2d"),this.renderTarget=0,this.renderSource=this.PAGESIZE,this.fontString="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()",this.fontBitmap="11111100011111110001100011111010001111101000111110111111000010000100000111111100100101000110001111101111110000111001000011111111111000011100100001000011111100001011110001111111000110001111111000110001111110010000100001001111111111000100001010010111101000110010111001001010001100001000010000100001111110001110111010110001100011000111001101011001110001011101000110001100010111011110100011001011100100000111010001100011001001111111101000111110100011000101111100000111000001111101111100100001000010000100100011000110001100010111010001100011000101010001001000110001101011010101110100010101000100010101000110001010100010000100001001111100010001000100011111001000110000100001000111001110100010001000100111111111000001001100000111110100101001011111000100001011111100001111000001111100111110000111101000101110111110000100010001000010001110100010111010001011100111010001011110000101110011101000110001100010111000000000000000000000111110010000100001000000000100111111000110111101011011101010111110101011111010100000000000000000000000100001100001000100000000000011011010011001000000000000111010001001100000000100000010001000100010001000000010001000100000100000100001000100001000010000010",this.pal=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64],this.dither=[65535,65527,65015,65013,62965,62901,58805,58789,42405,42401,42145,42144,41120,40992,32800,32768,0,63903,1632,63624],this.pat=65535,this.ctx.imageSmoothingEnabled=!1,this.imageData=this.ctx.getImageData(0,0,this.WIDTH,this.HEIGHT),this.buf=new ArrayBuffer(this.imageData.data.length),this.buf8=new Uint8Array(this.buf),this.data=new Uint32Array(this.buf),this.ram=new Uint8Array(this.WIDTH*this.HEIGHT*this.PAGES)}setPen(t,e,i=0){this.cursorColor=t,this.cursorColor2=e,this.pat=i}clr(t,e){this.ram.fill(t,e,e+this.PAGESIZE)}pset(t,e,i,s=this.cursorColor2){t|=0,e|=0,i=this.stencil?this.pget(t,e,this.stencilSource)+this.stencilOffset:(0|i)%64;let r=this.pat&Math.pow(2,e%4*4+t%4)?i:s;64!=r&&(0>t|t>this.WIDTH-1||0>e|e>this.HEIGHT-1||(this.ram[this.renderTarget+e*this.WIDTH+t]=r))}pget(t,e,i=0){return this.ram[i+(t|=0)+(e|=0)*this.WIDTH]}line(t,e,i,s,r){var a,h,o=(s|=0)-(e|=0),n=(i|=0)-(t|=0);if(0>o?(o=-o,h=-1):h=1,0>n?(n=-n,a=-1):a=1,o<<=1,n<<=1,this.pset(t,e,r),n>o)for(var l=o-(n>>1);t!=i;)0>l||(e+=h,l-=n),l+=o,this.pset(t+=a,e,r);else for(l=n-(o>>1);e!=s;)0>l||(t+=a,l-=o),l+=n,this.pset(t,e+=h,r)}tline(t,e,i,s,r=0,a=0,h=0){var o,n,l=(s|=0)-(e|=0),c=(i|=0)-(t|=0);0>l?(l=-l,n=-1):n=1,0>c?(c=-c,o=-1):o=1;for(var d=t,f=e,u=(l<<=1)-((c<<=1)>>1);d!=i;)0>u||(f+=n,u-=c),u+=l,this.pset(d+=o,f,this.pget(d-r,f-a,this.renderSource)+h)}circle(t,e,i,s){t|=0,e|=0,s|=0;var r=-(i|=0),a=0,h=2-2*i;do{this.pset(t-r,e+a,s),this.pset(t-a,e-r,s),this.pset(t+r,e-a,s),this.pset(t+a,e+r,s),(i=h)>a||(h+=2*++a+1),(i>r||h>a)&&(h+=2*++r+1)}while(0>r)}fillCircle(t,e,i,s){if(t|=0,e|=0,s|=0,(i|=0)>=0){t|=0,e|=0;var r=-(i|=0),a=0,h=2-2*i;do{this.line(t-r,e-a,t+r,e-a,s),this.line(t-r,e+a,t+r,e+a,s),(i=h)>a||(h+=2*++a+1),(i>r||h>a)&&(h+=2*++r+1)}while(0>r)}}tfillCircle(t,e,i,s=0){if(t|=0,e|=0,i|=0,offX=t-mw,offY=e-mh,i>=0){t|=0,e|=0;var r=-(i|=0),a=0,h=2-2*i;do{this.tline(t-r,e-a,t+r,e-a,offX,offY,s),this.tline(t-r,e+a,t+r,e+a,offX,offY,s),(i=h)>a||(h+=2*++a+1),(i>r||h>a)&&(h+=2*++r+1)}while(0>r)}}rect(t,e,i,s,r){let a=0|t,h=0|e,o=t+i|0,n=e+s|0;this.line(a,h,o,h,r|=this.cursorColor),this.line(o,h,o,n,r),this.line(a,n,o,n,r),this.line(a,h,a,n,r)}fillRect(t,e,i,s,r){let a=0|t,h=0|e,o=(t+i|0)-1,n=(e+s|0)-1;r=r;var l=Math.abs(n-h);if(this.line(a,h,o,h,r),l>0)for(;--l;)this.line(a,h+l,o,h+l,r);this.line(a,n,o,n,r)}sspr(t=0,e=0,i=16,s=16,r=0,a=0,h=32,o=32,n=!1,l=!1){var c=i/h,d=s/o;this.pat=this.dither[0];for(var f=0;o>f;f++)for(var u=0;h>u;u++)px=u*c|0,py=f*d|0,e=l?s-py-f:e,t=n?i-px-u:t,source=this.pget(t+px,e+py,this.renderSource),source>0&&this.pset(r+u,a+f,source)}outline(t,e,i,s,r,a){for(let t=0;this.WIDTH>=t;t++)for(let e=0;this.HEIGHT>=e;e++){let h=t-1+e*this.WIDTH,o=t+1+e*this.WIDTH,n=t+(e+1)*this.WIDTH,l=t+(e-1)*this.WIDTH;this.ram[this.renderSource+(t+e*this.WIDTH)]&&(64==this.ram[this.renderSource+h]&&(this.ram[this.renderTarget+h]=i),64==this.ram[this.renderSource+o]&&(this.ram[this.renderTarget+o]=r),64==this.ram[this.renderSource+l]&&(this.ram[this.renderTarget+l]=s),64==this.ram[this.renderSource+n]&&(this.ram[this.renderTarget+n]=a))}}triangle(t,e,i,s){this.line(t.x,t.y,e.x,e.y,s),this.line(e.x,e.y,i.x,i.y,s),this.line(i.x,i.y,t.x,t.y,s)}strokePolygon(t,e,i,s,r=0,a="white"){s=s||Math.floor(240*i)+16;for(let h=0;s>h;h++){let o=h/s*6.283185,n=(h+1)/s*6.283185;this.line(t+Math.cos(o+r)*i,e+Math.sin(o+r)*i,t+Math.cos(n+r)*i,e+Math.sin(n+r)*i,a)}}fillTriangle(t,e,i,s){let r=[Object.assign({},t),Object.assign({},e),Object.assign({},i)].sort((t,e)=>t.y-e.y),a=r[0],h=r[1],o=r[2],n=0,l=0,c=0,d={},f={};if(h.y-a.y>0&&(n=(h.x-a.x)/(h.y-a.y)),o.y-a.y>0&&(l=(o.x-a.x)/(o.y-a.y)),o.y-h.y>0&&(c=(o.x-h.x)/(o.y-h.y)),Object.assign(d,a),Object.assign(f,a),n>l){for(;h.y>=d.y;d.y++,f.y++,d.x+=l,f.x+=n)this.line(d.x,d.y,f.x,d.y,s);for(f=h;o.y>=d.y;d.y++,f.y++,d.x+=l,f.x+=c)this.line(d.x,d.y,f.x,d.y,s)}else{for(;h.y>=d.y;d.y++,f.y++,d.x+=n,f.x+=l)this.line(d.x,d.y,f.x,d.y,s);for(d=h;o.y>=d.y;d.y++,f.y++,d.x+=c,f.x+=l)this.line(d.x,d.y,f.x,d.y,s)}}imageToRam(t,e){let i=document.createElement("canvas");i.width=WIDTH,i.height=HEIGHT;let s=i.getContext("2d");s.drawImage(t,0,0);var r=s.getImageData(0,0,WIDTH,HEIGHT);let a=new Uint32Array(r.data.buffer);for(var h=0;a.length>h;h++)ram[e+h]=colors.indexOf(a[h])}render(){for(var t=this.PAGESIZE;t--;)t>0&&(this.data[t]=this.colors[this.pal[this.ram[t]]]);this.imageData.data.set(this.buf8),this.c.width=this.c.width,this.ctx.putImageData(this.imageData,0,0)}textLine(t){let e=t[0].length;for(var i=0;e>i;i++){let e=this.getCharacter(t[0].charAt(i));for(var s=0;5>s;s++)for(var r=0;5>r;r++)1==e[5*s+r]&&(1==t[4]?this.pset(t[1]+r*t[4]+(5*t[4]+t[3])*i,t[2]+s*t[4]|0,t[5]):this.fillRect(t[1]+r*t[4]+(5*t[4]+t[3])*i,t[2]+s*t[4]|0,t[4],t[4],t[5]))}}text(t){let e=5*t[7],i=t[0].split("\n"),s=i.slice(0),r=i.length,a=s.sort((t,e)=>e.length-t.length)[0],h=a.length*e+(a.length-1)*t[3],o=r*e+(r-1)*t[4];t[5]||(t[5]="left"),t[6]||(t[6]="bottom");var n=t[1],l=t[2],c=t[1]+h,d=t[2]+o;"center"==t[5]?(n=t[1]-h/2,c=t[1]+h/2):"right"==t[5]&&(n=t[1]-h,c=t[1]),"center"==t[6]?(l=t[2]-o/2,d=t[2]+o/2):"bottom"==t[6]&&(l=t[2]-o,d=t[2]);for(var f=n+h/2,u=l+o/2,y=0;r>y;y++){let s=i[y],r=s.length*e+(s.length-1)*t[3],a=t[1],h=t[2]+(e+t[4])*y;"center"==t[5]?a=t[1]-r/2:"right"==t[5]&&(a=t[1]-r),"center"==t[6]?h-=o/2:"bottom"==t[6]&&(h-=o),this.textLine([s,a,h,t[3],t[7],t[8]])}return{sx:n,sy:l,cx:f,cy:u,ex:c,ey:d,width:h,height:o}}getCharacter(t){let e=this.fontString.indexOf(t);return this.fontBitmap.substring(25*e,25*e+25).split("")}}var i=function(){var t,e,i,s,r,a=t=>Math.sin(6.283184*t),h=t=>.003959503758*2**((t-128)/12),o=(t,e,i)=>{var s,r,a,o,l,c,d=n[t.i[0]],f=t.i[1],u=t.i[3]/32,y=n[t.i[4]],w=t.i[5],p=t.i[8]/32,x=t.i[9],g=t.i[10]*t.i[10]*4,m=t.i[11]*t.i[11]*4,v=t.i[12]*t.i[12]*4,E=1/v,T=-t.i[13]/16,I=t.i[14],C=i*2**(2-t.i[15]),A=new Int32Array(g+m+v),S=0,D=0;for(s=0,r=0;g+m+v>s;s++,r++)0>r||(r-=C,l=h(e+(15&(I=I>>8|(255&I)<<4))+t.i[2]-128),c=h(e+(15&I)+t.i[6]-128)*(1+8e-4*t.i[7])),a=1,g>s?a=s/g:g+m>s||(a=(1-(a=(s-g-m)*E))*3**(T*a)),o=d(S+=l*a**u)*f,o+=y(D+=c*a**p)*w,x&&(o+=(2*Math.random()-1)*x),A[s]=80*o*a|0;return A},n=[a,t=>.5>t%1?1:-1,t=>t%1*2-1,t=>{var e=t%1*4;return 2>e?e-1:3-e}];this.init=a=>{t=a,i=0,s=a.rowLen*a.patternLen*((e=a.endPattern)+1)*2,r=new Int32Array(s)},this.generate=()=>{var h,l,c,d,f,u,y,w,p,x,g,m,v,E,T=new Int32Array(s),I=t.songData[i],C=t.rowLen,A=t.patternLen,S=0,D=0,M=!1,b=[];for(c=0;e>=c;++c)for(y=I.p[c],d=0;A>d;++d){var H=y?I.c[y-1].f[d]:0;H&&(I.i[H-1]=I.c[y-1].f[d+A]||0,17>H&&(b=[]));var L=n[I.i[16]],R=I.i[17]/512,P=2**(I.i[18]-9)/C,G=I.i[19],W=I.i[20],z=135.82764118168*I.i[21]/44100,N=1-I.i[22]/255,O=1e-5*I.i[23],k=I.i[24]/32,U=I.i[25]/512,Y=6.283184*2**(I.i[26]-9)/C,B=I.i[27]/255,X=I.i[28]*C&-2;for(g=(c*A+d)*C,f=0;4>f;++f)if(u=y?I.c[y-1].n[d+f*A]:0){b[u]||(b[u]=o(I,u,C));var j=b[u];for(l=0,h=2*g;j.length>l;l++,h+=2)T[h]+=j[l]}for(l=0;C>l;l++)(x=T[w=2*(g+l)])||M?(m=z,G&&(m*=L(P*w)*R+.5),D+=(m=1.5*Math.sin(m))*(v=N*(x-D)-(S+=m*D)),x=3==W?D:1==W?v:S,O&&(x=1>(x*=O)?x>-1?a(.25*x):-1:1,x/=O),M=(x*=k)*x>1e-5,E=x*(1-(p=Math.sin(Y*w)*U+.5)),x*=p):E=0,X>w||(E+=T[w-X+1]*B,x+=T[w-X]*B),T[w]=0|E,T[w+1]=0|x,r[w]+=0|E,r[w+1]+=0|x}return++i/t.numChannels},this.createAudioBuffer=t=>{for(var e=t.createBuffer(2,s/2,44100),i=0;2>i;i++)for(var a=e.getChannelData(i),h=i;s>h;h+=2)a[h>>1]=r[h]/65536;return e},this.createWave=()=>{var t=44+2*s-8,e=t-36,i=new Uint8Array(44+2*s);i.set([82,73,70,70,255&t,t>>8&255,t>>16&255,t>>24&255,87,65,86,69,102,109,116,32,16,0,0,0,1,0,2,0,68,172,0,0,16,177,2,0,4,0,16,0,100,97,116,97,255&e,e>>8&255,e>>16&255,e>>24&255]);for(var a=0,h=44;s>a;++a){var o=r[a];i[h++]=255&(o=-32767>o?-32767:o>32767?32767:o),i[h++]=o>>8&255}return i},this.getData=(t,e)=>{for(var i=2*Math.floor(44100*t),s=Array(e),a=0;2*e>a;a+=1){var h=i+a;s[a]=t>0&&r.length>h?r[h]/32768:0}return s}};class s{constructor(t,e,i,s){this.x=t,this.y=e,this.lifeMax=i,this.life=i,this.alive=!0,this.color=s}draw(){r.pat=r.dither[15-Math.floor(this.life/this.lifeMax*15)];for(let t=Math.floor(this.life/10);t>0;t--)r.circle(this.x-view.x,this.y-view.y,this.lifeMax-this.life-t,this.color);r.circle(this.x-view.x,this.y-view.y,this.lifeMax-this.life,this.color),r.pat=r.dither[0]}update(){this.alive&&(this.life>0?this.life-=1:this.alive=!1)}}function a(t,e){return Math.floor(Math.random()*(e+1-t)+t)}function o(t,e,i){return t+(e-t)*i}function n(t,e=0){return t.x-view.x+e>0&&t.y-view.y+e>0&&t.x-view.x-e<w&&t.y-view.y-e<h}function l(t,e=1,i=0,s=.5,r=!1){var a=window.audioCtx.createBufferSource(),h=window.audioCtx.createGain(),o=window.audioCtx.createStereoPanner();return a.buffer=t,a.connect(o),o.connect(h),h.connect(audioMaster),a.playbackRate.value=e,a.loop=r,h.gain.value=s,o.pan.value=i,a.start(),{volume:h,sound:a}}const c={_pressed:{},_released:{},LEFT:37,UP:38,RIGHT:39,DOWN:40,SPACE:32,ONE:49,TWO:50,THREE:51,FOUR:52,a:65,c:67,w:87,s:83,d:68,z:90,x:88,f:70,p:80,r:82,m:77,h:72,isDown(t){return this._pressed[t]},justReleased(t){return this._released[t]},onKeydown(t){this._pressed[t.keyCode]=!0},onKeyup(t){this._released[t.keyCode]=!0,delete this._pressed[t.keyCode]},update(){this._released={}}};class d{constructor(t,e){this.x=t,this.y=e,this.size=47}draw(){r.fillRect(this.x-view.x,this.y-view.y,this.size,this.size,30),r.fillCircle(this.x+Math.floor(this.size/2)-view.x,this.y+Math.floor(this.size/2)-view.y,this.size/2-3,0),r.fillCircle(this.x+Math.floor(this.size/2)-view.x,this.y+Math.floor(this.size/2)-view.y,this.size/7,30)}update(){}}var f={songData:[{i:[2,100,128,0,3,201,128,0,0,0,5,6,58,0,0,0,0,195,6,1,2,135,0,0,32,147,6,28,6],p:[1],c:[{n:[147,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,152,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,154],f:[]}]}],rowLen:5088,patternLen:32,endPattern:0,numChannels:1},u={songData:[{i:[2,100,128,0,3,201,128,0,0,0,5,6,58,0,0,0,0,195,6,1,2,135,0,0,32,147,6,55,6],p:[1],c:[{n:[151,151,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,154,154,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,159,159,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,135,135],f:[]}]}],rowLen:6014,patternLen:32,endPattern:0,numChannels:1};class p{constructor(t,e,i,s){this.types={EMPTY:0,WALL:1,DECOR:2},this.customDithers=[34952,17476,8738,4369],this.x=i,this.y=s,this.w=t,this.h=e,this.cellSize=8,this.cells=[],this.cells.length=t*e;for(let t=0;this.cells.length>t;t++)this.cells[t]={x:t%this.w,y:Math.floor(t/this.w),type:0,vined:!1,alive:a(0,100)>90,fill:{color1:0,color2:0,dither:0},flowerColor:a(2,63),offset:{x:0,y:0,scale:0}}}draw(){this.cells.forEach(t=>{n({x:t.x*this.cellSize,y:t.y*this.cellSize},16)&&t.type!=this.types.EMPTY&&(r.pat=t.fill.dither,r.cursorColor2=t.fill.color2,r.fillCircle(t.x*this.cellSize-view.x,t.y*this.cellSize-view.y,this.cellSize-t.offset.scale,t.fill.color1),r.pat=r.dither[0],r.cursorColor2=64)}),this.cells.forEach(t=>{n({x:t.x*this.cellSize,y:t.y*this.cellSize},16)&&t.type!=this.types.EMPTY&&t.alive&&(r.fillRect(t.x*this.cellSize-view.x+3,t.y*this.cellSize-view.y+3,2,2,t.flowerColor),r.fillRect(t.x*this.cellSize-view.x+7,t.y*this.cellSize-view.y+3,2,2,t.flowerColor),r.fillRect(t.x*this.cellSize-view.x+5,t.y*this.cellSize-view.y+1,2,2,t.flowerColor),r.fillRect(t.x*this.cellSize-view.x+5,t.y*this.cellSize-view.y+5,2,2,t.flowerColor))})}update(){this.cells.forEach(()=>{})}countAliveNeighbors(t,e){let i=0;for(let s=-1;2>s;s++)for(let r=-1;2>r;r++){if(0==s&&0==r)continue;let a=t+s,h=e+r;a>=0&&this.w>a&&h>=0&&this.h>h&&this.cells[a+h*this.w].type!=this.types.EMPTY&&i++}return i}getNeighbors(){let t=[];for(let e=-1;2>e;e++)for(let i=-1;2>i;i++){if(0==e&&0==i)continue;let s=x+e,r=y+i;s>=0&&this.w>s&&r>=0&&this.h>r&&t.push(this.cells[s+r*this.w])}return t}getCell(t,e){return this.cells[t+e*this.w]}doSimulationStep(t,e){let i=this.cells.map(t=>t);for(let s=0;this.cells.length>s;s++){let r=this.cells[s],a=this.countAliveNeighbors(r.x,r.y);i[s].type=r.type==this.types.WALL?e>a?this.types.EMPTY:this.types.WALL:a>t?this.types.WALL:this.types.EMPTY}this.cells=i,this.setFills()}setFills(){this.cells.forEach(t=>{if(t.type==this.types.WALL&&(t.fill.color1=15,t.fill.color2=16,t.fill.dither=r.dither[a(0,15)],t.offset.scale=a(1,3)),t.x>0&&t.y>0&&this.w>t.x&&this.h>t.y){this.getCell(t.x,t.y-1).type==this.types.EMPTY&&(t.fill={color1:13,color2:14,dither:r.dither[a(0,15)]});let e=this.getCell(t.x,t.y+1);null!=e&&e.type==this.types.EMPTY&&(t.fill.color1=13,t.fill.color2=14,t.fill.dither=r.dither[a(0,15)])}})}}800>innerWidth?(screenFactor=2,w=innerWidth/2,h=innerHeight/2):(screenFactor=3,w=Math.floor(innerWidth/3),h=Math.floor(innerHeight/3)),view={x:0,y:0},cursor={x:0,y:0,isDown:!1},viewTarget={x:0,y:0},then=0,elapsed=0,now=0,framesPerSecond=60,fpsInterval=1e3/60,window.t=1,splodes=[],fans=[],window.player=new class{constructor(t,e){this.x=t,this.y=e,this.width=8,this.height=8,this.speed={x:2,y:2},this.velocity={x:0,y:0},this.drag={x:.8,y:.8},this.target={x:0,y:0,distance:0},this.alive=!0}draw(){r.fillCircle(this.x-view.x,this.y-view.y+5*Math.sin(t/10),this.width/2,22)}update(){this.x+=this.velocity.x,this.y+=this.velocity.y;let e=this.target.x-this.x,i=this.target.y-this.y;return this.target.distance=Math.sqrt(e*e+i*i),5>this.target.distance&&(this.velocity.x*=this.drag.x,this.velocity.y*=this.drag.y),splodes.push(new s(this.x,this.y+7*Math.sin(t/10),a(5,10),a(18,22))),0}move(t,e){this.target.x=t,this.target.y=e;let i=Math.atan2(this.target.y-this.y,this.target.x-this.x);this.velocity.x=Math.cos(i)*this.speed.x,this.velocity.y=Math.sin(i)*this.speed.y}}(100,100),screenCenterX=w/2,screenCenterY=h/2,gamestate=0,paused=!1,started=!1,sounds={},soundsReady=0,totalSounds=2,audioTxt="",debugText="";const g=document.createElement("style");function m(){window.map=new p(200,200,0,0),map.cells.forEach(t=>{t.type=.55>1*Math.random()+0?1:0});for(let t=0;5>t;t++)map.doSimulationStep(5,4);for(let t=0;10>t;t++)for(let t=0;100>t;t++){let t=a(0,map.w),e=a(0,map.h);if(1==map.cells[t+e*map.w].type){fans.push(new d(t*map.cellSize,e*map.cellSize));break}}}function v(){requestAnimationFrame(v),now=Date.now(),elapsed=now-then,elapsed>1e3/60&&(then=now-elapsed%(1e3/60),(()=>{switch(gamestate){case 0:r.clr(0,r.SCREEN),r.text([audioTxt,w/2-2,100,1,3,"center","top",1,22]),audioTxt="CLICK TO INITIALIZE\nGENERATION SEQUENCE",soundsReady==totalSounds?audioTxt="ALL SOUNDS RENDERED.\nTAP OR CLICK TO CONTINUE":started?audioTxt="SOUNDS RENDERING... "+soundsReady:audioTxt="CLICK TO INITIALIZE\nGENERATION SEQUENCE",cursor.isDown&&soundsReady==totalSounds&&(gamestate=1),r.render();break;case 1:t+=1,splodes.forEach(t=>t.update()),(t=>{for(let e=0;t.length>e;e++)t[e].alive||t.splice(e,1)})(splodes),player.update(),viewTarget.x=player.x-screenCenterX,viewTarget.y=player.y-screenCenterY,view.x=o(view.x,viewTarget.x,.1),view.y=o(view.y,viewTarget.y,.1),c.justReleased(c.r)&&(window.t=1,splodes=[],m(),gamestate=1),r.clr(1,r.SCREEN),map.draw(),fans.forEach(t=>t.draw()),splodes.forEach(t=>t.draw()),player.draw(),r.render();break;case 2:(()=>{(c.justReleased(c.UP)||c.justReleased(c.w)||c.justReleased(c.z))&&(gamestate=1),r.clr(14,r.SCREEN);let t=Math.ceil(w/32),e=Math.ceil(h/32);for(let e=0;t>e;e++)r.line(32*e,0,32*e,r.HEIGHT,2);for(let t=0;e>t;t++)r.line(0,32*t,r.WIDTH,32*t,2);let i="TITLE SCREEN";r.text([i,w/2-2,100,2,3,"center","top",3,22]),i="CLICK TO BEGIN",r.text([i,w/2-2,120,1,3,"center","top",1,22]),r.render()})()}})()),c.update()}function E(t){let e=Math.floor(t.pageX/screenFactor),i=Math.floor(t.pageY/screenFactor)+view.y,r=e+view.x;cursor.isDown?splodes.push(new s(r,i,a(5,10),a(0,63))):player.move(r,i)}g.type="text/css",g.innerText="\n  canvas {display: inline-block; height:100%; width:100%;  image-rendering: pixelated;\n    image-rendering: crisp-edges; background-color: black;}\n\n  * {\n    overflow: hidden;\n    background-color: black;\n    margin: 0;\n    }\n",document.head.appendChild(g),atlasImage=new Image,atlasImage.src="data:image/webp;base64,UklGRgYBAABXRUJQVlA4TPkAAAAvPwAAAAmAIPx/e4jof2oBEIT/bw8R/U/BbQAAZBPbrG0bm77naNt2L3FjAQCpfJvZtdk21m7QhbpU769xtW3XZicCAJBRmm1G6wHry3sBv3oJ2TaTzQgMgykOw60sEIPJ/NfmfEb0m+KfSWGWH/i/u8auMllLp0n52cfoLvVtXVYKFAcUZfWj5j87X4mHi8bzX1l8HrX3pPYcTlvOVVr9qo3Lavb/rXmB1LJcpoDHLXpMG3GbpNff9Hvj+WI8GbdW+8mBP7FawBlU3S655I2Sr7TX+Qybu3urf71W96O6lRfDTjcaDs1JZ6CujZezdr8z65838/1hdwAA",atlasImage.onload=function(){let t=document.createElement("canvas");t.width=64,t.height=64;let i=t.getContext("2d");i.drawImage(this,0,0),atlas=new Uint32Array(i.getImageData(0,0,64,64).data.buffer),window.r=new e(w,h,atlas,10),window.playSound=l,gamebox=document.getElementById("game"),gamebox.appendChild(r.c),v()},window.addEventListener("keyup",t=>{c.onKeyup(t)},!1),window.addEventListener("keydown",t=>{c.onKeydown(t)},!1),window.addEventListener("blur",()=>{paused=!0},!1),window.addEventListener("focus",()=>{paused=!1},!1),window.addEventListener("mousemove",t=>{cursor.isDown&&E(t)},!1),window.addEventListener("mousedown",t=>{cursor.isDown=!0,E(t)},!1),window.addEventListener("mouseup",t=>{cursor.isDown=!1,E(t)},!1),window.addEventListener("touchstart",t=>{0==gamestate?onWindowInteraction(t):(cursor.isDown=!0,E(t))},!1),window.addEventListener("touchend",()=>{cursor.isDown=!1},!1),onWindowInteraction=t=>{switch(x=t.pageX,y=t.pageY,paused=!1,gamestate){case 0:0!=soundsReady||started||(m(),audioCtx=new AudioContext,audioMaster=audioCtx.createGain(),compressor=audioCtx.createDynamicsCompressor(),compressor.threshold.setValueAtTime(-60,audioCtx.currentTime),compressor.knee.setValueAtTime(40,audioCtx.currentTime),compressor.ratio.setValueAtTime(12,audioCtx.currentTime),compressor.attack.setValueAtTime(0,audioCtx.currentTime),compressor.release.setValueAtTime(.25,audioCtx.currentTime),audioMaster.connect(compressor),compressor.connect(audioCtx.destination),sndData=[{name:"cellComplete",data:f},{name:"tada",data:u}],totalSounds=sndData.length,soundsReady=0,sndData.forEach(t=>{const e=new i;e.init(t.data);let s=!1;setInterval(()=>{if(!s&&(s=1==e.generate(),soundsReady+=s,s)){let i=e.createWave().buffer;audioCtx.decodeAudioData(i,e=>{sounds[t.name]=e})}},0)}),started=!0);break;case 2:case 1:break;case GAMEOVER:}},onclick=t=>{onWindowInteraction(t)},ontouchstart=t=>{onWindowInteraction(t)}}();
+(function () {
+
+  class RetroBuffer {
+    constructor(width, height, atlas, pages) {
+      this.WIDTH = width;
+      this.HEIGHT = height;
+      this.PAGESIZE = this.WIDTH * this.HEIGHT;
+      this.PAGES = pages;
+      this.atlas = atlas;
+
+      this.SCREEN = 0;
+      this.PAGE_1 = this.PAGESIZE;
+      this.PAGE_2 = this.PAGESIZE * 2;
+      this.PAGE_3 = this.PAGESIZE * 3;
+      this.PAGE_4 = this.PAGESIZE * 4;
+
+      //relative drawing position and pencolor, for drawing functions that require it.
+      this.cursorX = 0;
+      this.cursorY = 0;
+      this.cursorColor = 22;
+      this.cursorColor2 = 64;
+      this.stencil = false;
+      this.stencilSource = this.PAGE_2;
+      this.stencilOffset = 0;
+
+      this.colors = this.atlas.slice(0, 64);
+
+      //default palette index
+      this.palDefault = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+        57, 58, 59, 60, 61, 62, 63,
+      ];
+
+      this.c = document.createElement("canvas");
+      this.c.width = this.WIDTH;
+      this.c.height = this.HEIGHT;
+      this.ctx = this.c.getContext("2d");
+      this.renderTarget = 0x00000;
+      this.renderSource = this.PAGESIZE; //buffer is ahead one screen's worth of pixels
+
+      this.fontString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_!@#.'\"?/<()";
+
+      this.fontBitmap =
+        "11111100011111110001100011111010001111101000111110111111000010000100000111111100100101000110001111101111110000111001000011111111111000" +
+        "0111001000010000111111000010111100011111110001100011111110001100011111100100001000010011111111110001000010100101111010001100101110010010100011000" +
+        "0100001000010000111111000111011101011000110001100011100110101100111000101110100011000110001011101111010001100101110010000011101000110001100100111" +
+        "1111101000111110100011000101111100000111000001111101111100100001000010000100100011000110001100010111010001100011000101010001001000110001101011010" +
+        "1011101000101010001000101010001100010101000100001000010011111000100010001000111110010001100001000010001110011101000100010001001111111110000010011" +
+        "0000011111010010100101111100010000101111110000111100000111110011111000011110100010111011111000010001000100001000111010001011101000101110011101000" +
+        "1011110000101110011101000110001100010111000000000000000000000111110010000100001000000000100111111000110111101011011101010111110101011111010100000" +
+        "000000000000000000100001100001000100000000000011011010011001000000000000111010001001100000000100000010001000100010001000000010001000100000100000100001000100001000010000010";
+
+      this.pal = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+        39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+        57, 58, 59, 60, 61, 62, 63, 64,
+      ];
+
+      this.dither = [
+        0b1111111111111111, 0b1111111111110111, 0b1111110111110111,
+        0b1111110111110101, 0b1111010111110101, 0b1111010110110101,
+        0b1110010110110101, 0b1110010110100101, 0b1010010110100101,
+        0b1010010110100001, 0b1010010010100001, 0b1010010010100000,
+        0b1010000010100000, 0b1010000000100000, 0b1000000000100000,
+        0b1000000000000000, 0b0000000000000000, 0b1111100110011111,
+        0b0000011001100000, 0b1111100010001000,
+      ];
+
+      this.pat = 0b1111111111111111;
+
+      this.ctx.imageSmoothingEnabled = false;
+
+      this.imageData = this.ctx.getImageData(0, 0, this.WIDTH, this.HEIGHT),
+        this.buf = new ArrayBuffer(this.imageData.data.length),
+        this.buf8 = new Uint8Array(this.buf),
+        this.data = new Uint32Array(this.buf),
+        this.ram = new Uint8Array(this.WIDTH * this.HEIGHT * this.PAGES);
+        this.zbuf = new Float64Array(this.WIDTH * this.HEIGHT);
+
+      //Brightness LUT
+      // this.brightness = [];
+      // for (let i = 0; i < 6; i++) {
+      //   for (let j = 0; j < 64; j++) {
+      //     this.brightness[i * 64 + j] = this.colors.indexOf(
+      //       this.atlas[i * 64 + j]
+      //     );
+      //   }
+        //ram[address + i] = colors.indexOf(data[i]);
+      //}
+    }
+
+    //--------------graphics functions----------------
+
+    setPen(color, color2, dither = 0) {
+      this.cursorColor = color;
+      this.cursorColor2 = color2;
+      this.pat = dither;
+    }
+
+    clr(color, page) {
+      this.ram.fill(color, page, page + this.PAGESIZE);
+      this.zbuf.fill(99999999, 0, this.WIDTH * this.HEIGHT);
+    }
+
+    pset(x, y, color, z = 0) {
+      x = x | 0;
+      y = y | 0;
+      color = this.stencil
+        ? this.pget(x, y, this.stencilSource) + this.stencilOffset
+        : (color | 0) % 64;
+      let px = (y % 4) * 4 + (x % 4);
+      let mask = this.pat & Math.pow(2, px);
+      let pcolor = mask ? color : this.cursorColor2;
+      if (pcolor == 64) return;
+      if ((x < 0) | (x > this.WIDTH - 1)) return;
+      if ((y < 0) | (y > this.HEIGHT - 1)) return;
+      if(this.zbuf[y * this.WIDTH + x] < z) return;
+      this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
+      this.zbuf[y * this.WIDTH + x] = z;
+    }
+
+    pget(x, y, page = 0) {
+      x = x | 0;
+      y = y | 0;
+      return this.ram[page + x + y * this.WIDTH];
+    }
+
+    line(x1, y1, x2, y2, color, z=0) {
+      (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
+
+      var dy = y2 - y1;
+      var dx = x2 - x1;
+      var stepx, stepy;
+
+      if (dy < 0) {
+        dy = -dy;
+        stepy = -1;
+      } else {
+        stepy = 1;
+      }
+      if (dx < 0) {
+        dx = -dx;
+        stepx = -1;
+      } else {
+        stepx = 1;
+      }
+      dy <<= 1; // dy is now 2*dy
+      dx <<= 1; // dx is now 2*dx
+
+      this.pset(x1, y1, color, z);
+      if (dx > dy) {
+        var fraction = dy - (dx >> 1); // same as 2*dy - dx
+        while (x1 != x2) {
+          if (fraction >= 0) {
+            y1 += stepy;
+            fraction -= dx; // same as fraction -= 2*dx
+          }
+          x1 += stepx;
+          fraction += dy; // same as fraction -= 2*dy
+          this.pset(x1, y1, color, z);
+        }
+      } else {
+        fraction = dx - (dy >> 1);
+        while (y1 != y2) {
+          if (fraction >= 0) {
+            x1 += stepx;
+            fraction -= dy;
+          }
+          y1 += stepy;
+          fraction += dx;
+          this.pset(x1, y1, color, z);
+        }
+      }
+    }
+
+    tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0, z=0) {
+      (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
+
+      var dy = y2 - y1;
+      var dx = x2 - x1;
+      var stepx, stepy;
+
+      if (dy < 0) {
+        dy = -dy;
+        stepy = -1;
+      } else {
+        stepy = 1;
+      }
+      if (dx < 0) {
+        dx = -dx;
+        stepx = -1;
+      } else {
+        stepx = 1;
+      }
+      dy <<= 1; // dy is now 2*dy
+      dx <<= 1; // dx is now 2*dx
+
+      var x = x1,
+        y = y1;
+      var fraction = dy - (dx >> 1); // same as 2*dy - dx
+      while (x != x2) {
+        if (fraction >= 0) {
+          y += stepy;
+          fraction -= dx; // same as fraction -= 2*dx
+        }
+        x += stepx;
+        fraction += dy; // same as fraction -= 2*dy
+        this.pset(
+          x,
+          y,
+          this.pget(x - offsetX, y - offsetY, this.renderSource) + colorOffset
+        );
+      }
+    }
+
+    circle(xm, ym, r, color, z=0) {
+      xm = xm | 0;
+      ym = ym | 0;
+      r = r | 0;
+      color = color | 0;
+      var x = -r,
+        y = 0,
+        err = 2 - 2 * r;
+      /* II. Quadrant */
+      do {
+        this.pset(xm - x, ym + y, color, z);
+        /*   I. Quadrant */
+        this.pset(xm - y, ym - x, color, z);
+        /*  II. Quadrant */
+        this.pset(xm + x, ym - y, color, z);
+        /* III. Quadrant */
+        this.pset(xm + y, ym + x, color, z);
+        /*  IV. Quadrant */
+        r = err;
+        if (r <= y) err += ++y * 2 + 1;
+        /* e_xy+e_y < 0 */
+        if (r > x || err > y) err += ++x * 2 + 1;
+        /* e_xy+e_x > 0 or no 2nd y-step */
+      } while (x < 0);
+    }
+
+    fillCircle(xm, ym, r, color, z=0) {
+      xm = xm | 0;
+      ym = ym | 0;
+      r = r | 0;
+      color = color | 0;
+      if (r < 0) return;
+      xm = xm | 0;
+      (ym = ym | 0), (r = r | 0);
+      var x = -r,
+        y = 0,
+        err = 2 - 2 * r;
+      /* II. Quadrant */
+      do {
+        this.line(xm - x, ym - y, xm + x, ym - y, color, z);
+        this.line(xm - x, ym + y, xm + x, ym + y, color, z);
+        r = err;
+        if (r <= y) err += ++y * 2 + 1;
+        if (r > x || err > y) err += ++x * 2 + 1;
+      } while (x < 0);
+    }
+
+    tfillCircle(xm, ym, r, colorOffset = 0, z=0) {
+      xm = xm | 0;
+      ym = ym | 0;
+      r = r | 0;
+      offX = xm - mw; //+ r;
+      offY = ym - mh; //+ r;
+      if (r < 0) return;
+      xm = xm | 0;
+      (ym = ym | 0), (r = r | 0);
+      var x = -r,
+        y = 0,
+        err = 2 - 2 * r;
+      /* II. Quadrant */
+      do {
+        this.tline(xm - x, ym - y, xm + x, ym - y, offX, offY, colorOffset, z);
+        this.tline(xm - x, ym + y, xm + x, ym + y, offX, offY, colorOffset, z);
+        r = err;
+        if (r <= y) err += ++y * 2 + 1;
+        if (r > x || err > y) err += ++x * 2 + 1;
+      } while (x < 0);
+    }
+
+    rect(x, y, w, h, color, z=0) {
+      color = color | this.cursorColor;
+      //let { line } = this;
+      let x1 = x | 0,
+        y1 = y | 0,
+        x2 = (x + w) | 0,
+        y2 = (y + h) | 0;
+
+      this.line(x1, y1, x2, y1, color, z);
+      this.line(x2, y1, x2, y2, color, z);
+      this.line(x1, y2, x2, y2, color, z);
+      this.line(x1, y1, x1, y2, color, z);
+    }
+
+    fillRect(x, y, w, h, color, z=0) {
+      let x1 = x | 0,
+        y1 = y | 0,
+        x2 = ((x + w) | 0) - 1,
+        y2 = ((y + h) | 0) - 1;
+      color = color;
+
+      var i = Math.abs(y2 - y1);
+      this.line(x1, y1, x2, y1, color, z);
+
+      if (i > 0) {
+        while (--i) {
+          this.line(x1, y1 + i, x2, y1 + i, color, z);
+        }
+      }
+
+      this.line(x1, y2, x2, y2, color, z);
+    }
+
+    sspr(
+      sx = 0,
+      sy = 0,
+      sw = 16,
+      sh = 16,
+      x = 0,
+      y = 0,
+      dw = 32,
+      dh = 32,
+      flipx = false,
+      flipy = false,
+      z=0
+    ) {
+      var xratio = sw / dw;
+      var yratio = sh / dh;
+      this.pat = this.dither[0]; //reset pattern
+      for (var i = 0; i < dh; i++) {
+        for (var j = 0; j < dw; j++) {
+          px = (j * xratio) | 0;
+          py = (i * yratio) | 0;
+          sy = flipy ? sh - py - i : sy;
+          sx = flipx ? sw - px - j : sx;
+          source = this.pget(sx + px, sy + py, this.renderSource);
+          if (source > 0) {
+            this.pset(x + j, y + i, source);
+          }
+        }
+      }
+    }
+
+    outline(renderSource, renderTarget, color, color2, color3, color4) {
+      for (let i = 0; i <= this.WIDTH; i++) {
+        for (let j = 0; j <= this.HEIGHT; j++) {
+          let left = i - 1 + j * this.WIDTH;
+          let right = i + 1 + j * this.WIDTH;
+          let bottom = i + (j + 1) * this.WIDTH;
+          let top = i + (j - 1) * this.WIDTH;
+          let current = i + j * this.WIDTH;
+
+          if (this.ram[this.renderSource + current]) {
+            if (this.ram[this.renderSource + left] == 64) {
+              this.ram[this.renderTarget + left] = color;
+            }
+            if (this.ram[this.renderSource + right] == 64) {
+              this.ram[this.renderTarget + right] = color3;
+            }
+            if (this.ram[this.renderSource + top] == 64) {
+              this.ram[this.renderTarget + top] = color2;
+            }
+            if (this.ram[this.renderSource + bottom] == 64) {
+              this.ram[this.renderTarget + bottom] = color4;
+            }
+          }
+        }
+      }
+    }
+
+    triangle(p1, p2, p3, color, z=0) {
+      this.line(p1.x, p1.y, p2.x, p2.y, color);
+      this.line(p2.x, p2.y, p3.x, p3.y, color);
+      this.line(p3.x, p3.y, p1.x, p1.y, color);
+    }
+
+    strokePolygon(x, y, r, sides, rotation = 0, color = "white") {
+      sides = sides || Math.floor(120 * (r * 2)) + 16;
+
+      for (let i = 0; i < sides; i++) {
+        let j = (i / sides) * 6.283185; //tau radians
+        let j2 = ((i + 1) / sides) * 6.283185; //tau radians
+
+        var sx = x + Math.cos(j + rotation) * r;
+        var sy = y + Math.sin(j + rotation) * r;
+
+        let px = x + Math.cos(j2 + rotation) * r;
+        let py = y + Math.sin(j2 + rotation) * r;
+
+        this.line(sx, sy, px, py, color);
+      }
+    }
+
+    //from https://www-users.mat.uni.torun.pl//~wrona/3d_tutor/tri_fillers.html
+    fillTriangle(p1, p2, p3, color) {
+      //sort vertices by y, top first
+
+      let P = [
+        Object.assign({}, p1),
+        Object.assign({}, p2),
+        Object.assign({}, p3),
+      ].sort((a, b) => a.y - b.y);
+      let A = P[0],
+        B = P[1],
+        C = P[2],
+        dx1 = 0,
+        dx2 = 0,
+        dx3 = 0,
+        S = {},
+        E = {};
+
+      if (B.y - A.y > 0) dx1 = (B.x - A.x) / (B.y - A.y);
+      if (C.y - A.y > 0) dx2 = (C.x - A.x) / (C.y - A.y);
+      if (C.y - B.y > 0) dx3 = (C.x - B.x) / (C.y - B.y);
+
+      Object.assign(S, A);
+      Object.assign(E, A);
+      if (dx1 > dx2) {
+        for (; S.y <= B.y; S.y++, E.y++, S.x += dx2, E.x += dx1) {
+          this.line(S.x, S.y, E.x, S.y, color);
+        }
+        E = B;
+        for (; S.y <= C.y; S.y++, E.y++, S.x += dx2, E.x += dx3)
+          this.line(S.x, S.y, E.x, S.y, color);
+      } else {
+        for (; S.y <= B.y; S.y++, E.y++, S.x += dx1, E.x += dx2) {
+          this.line(S.x, S.y, E.x, S.y, color);
+        }
+        S = B;
+        for (; S.y <= C.y; S.y++, E.y++, S.x += dx3, E.x += dx2) {
+          this.line(S.x, S.y, E.x, S.y, color);
+        }
+      }
+    }
+
+    imageToRam(image, address) {
+      //var image = E.smallcanvas.toDataURL("image/png");
+      let tempCanvas = document.createElement("canvas");
+      tempCanvas.width = WIDTH;
+      tempCanvas.height = HEIGHT;
+      let context = tempCanvas.getContext("2d");
+      //draw image to canvas
+      context.drawImage(image, 0, 0);
+
+      //get image data
+      var imageData = context.getImageData(0, 0, WIDTH, HEIGHT);
+
+      //set up 32bit view of buffer
+      let data = new Uint32Array(imageData.data.buffer);
+
+      //compare buffer to palette (loop)
+      for (var i = 0; i < data.length; i++) {
+        ram[address + i] = colors.indexOf(data[i]);
+      }
+    }
+
+    render() {
+      var i = this.PAGESIZE; // display is first page of ram
+
+      while (i--) {
+        /*
+        data is 32bit view of final screen buffer
+        for each pixel on screen, we look up it's color and assign it
+        */
+        if (i > 0) this.data[i] = this.colors[this.pal[this.ram[i]]];
+      }
+
+      this.imageData.data.set(this.buf8);
+      this.c.width = this.c.width;
+      this.ctx.putImageData(this.imageData, 0, 0);
+    }
+
+    //o is an array of options with the following structure:
+    /* [textstring, x, y, hspacing, vspacing, halign, valign, scale, color, offset, delay, frequency]
+  0: text
+  1: x
+  2: y
+  3: hspacing
+  4: vspacing
+  5: halign
+  6: valign
+  7: scale
+  8: color
+  //options 9-11 are for animating the text per-character. just sin motion
+  9: per character offset
+  10: delay, higher is slower
+  11: frequency
+  */
+    textLine(o) {
+      let textLength = o[0].length,
+        size = 5;
+
+      for (var i = 0; i < textLength; i++) {
+        let letter = this.getCharacter(o[0].charAt(i));
+
+        for (var y = 0; y < size; y++) {
+          for (var x = 0; x < size; x++) {
+            if (letter[y * size + x] == 1) {
+              if (o[4] == 1) {
+                this.pset(
+                  o[1] + x * o[4] + (size * o[4] + o[3]) * i,
+                  (o[2] + y * o[4]) | 0,
+                  o[5]
+                );
+              } else {
+                let cx = o[1] + x * o[4] + (size * o[4] + o[3]) * i;
+                let cy = (o[2] + y * o[4]) | 0;
+                this.fillRect(cx, cy, o[4], o[4], o[5]);
+              }
+            } //end draw routine
+          } //end x loop
+        } //end y loop
+      } //end text loop
+    }
+
+    text(o) {
+      let size = 5,
+        letterSize = size * o[7],
+        lines = o[0].split("\n"),
+        linesCopy = lines.slice(0),
+        lineCount = lines.length,
+        longestLine = linesCopy.sort(function (a, b) {
+          return b.length - a.length;
+        })[0],
+        textWidth =
+          longestLine.length * letterSize + (longestLine.length - 1) * o[3],
+        textHeight = lineCount * letterSize + (lineCount - 1) * o[4];
+
+      if (!o[5]) o[5] = "left";
+      if (!o[6]) o[6] = "bottom";
+
+      var sx = o[1],
+        sy = o[2],
+        ex = o[1] + textWidth,
+        ey = o[2] + textHeight;
+
+      if (o[5] == "center") {
+        sx = o[1] - textWidth / 2;
+        ex = o[1] + textWidth / 2;
+      } else if (o[5] == "right") {
+        sx = o[1] - textWidth;
+        ex = o[1];
+      }
+
+      if (o[6] == "center") {
+        sy = o[2] - textHeight / 2;
+        ey = o[2] + textHeight / 2;
+      } else if (o[6] == "bottom") {
+        sy = o[2] - textHeight;
+        ey = o[2];
+      }
+
+      var cx = sx + textWidth / 2,
+        cy = sy + textHeight / 2;
+
+      for (var i = 0; i < lineCount; i++) {
+        let line = lines[i],
+          lineWidth = line.length * letterSize + (line.length - 1) * o[3],
+          x = o[1],
+          y = o[2] + (letterSize + o[4]) * i;
+
+        if (o[5] == "center") {
+          x = o[1] - lineWidth / 2;
+        } else if (o[5] == "right") {
+          x = o[1] - lineWidth;
+        }
+
+        if (o[6] == "center") {
+          y = y - textHeight / 2;
+        } else if (o[6] == "bottom") {
+          y = y - textHeight;
+        }
+
+        this.textLine([line, x, y, o[3], o[7], o[8]]);
+      }
+
+      return {
+        sx: sx,
+        sy: sy,
+        cx: cx,
+        cy: cy,
+        ex: ex,
+        ey: ey,
+        width: textWidth,
+        height: textHeight,
+      };
+    }
+
+    getCharacter(char) {
+      let index = this.fontString.indexOf(char);
+      return this.fontBitmap.substring(index * 25, index * 25 + 25).split("");
+    }
+  }
+
+  /* -*- mode: javascript; tab-width: 4; indent-tabs-mode: nil; -*-
+  *
+  * Copyright (c) 2011-2013 Marcus Geelnard
+  *
+  * This software is provided 'as-is', without any express or implied
+  * warranty. In no event will the authors be held liable for any damages
+  * arising from the use of this software.
+  *
+  * Permission is granted to anyone to use this software for any purpose,
+  * including commercial applications, and to alter it and redistribute it
+  * freely, subject to the following restrictions:
+  *
+  * 1. The origin of this software must not be misrepresented; you must not
+  *    claim that you wrote the original software. If you use this software
+  *    in a product, an acknowledgment in the product documentation would be
+  *    appreciated but is not required.
+  *
+  * 2. Altered source versions must be plainly marked as such, and must not be
+  *    misrepresented as being the original software.
+  *
+  * 3. This notice may not be removed or altered from any source
+  *    distribution.
+  *
+  */
+
+  //"use strict";
+
+  // Some general notes and recommendations:
+  //  * This code uses modern ECMAScript features, such as ** instead of
+  //    Math.pow(). You may have to modify the code to make it work on older
+  //    browsers.
+  //  * If you're not using all the functionality (e.g. not all oscillator types,
+  //    or certain effects), you can reduce the size of the player routine even
+  //    further by deleting the code.
+
+
+  var MusicPlayer = function() {
+
+      //--------------------------------------------------------------------------
+      // Private methods
+      //--------------------------------------------------------------------------
+
+      // Oscillators
+      var osc_sin = function (value) {
+          return Math.sin(value * 6.283184);
+      };
+
+      var osc_saw = function (value) {
+          return 2 * (value % 1) - 1;
+      };
+
+      var osc_square = function (value) {
+          return (value % 1) < 0.5 ? 1 : -1;
+      };
+
+      var osc_tri = function (value) {
+          var v2 = (value % 1) * 4;
+          if(v2 < 2) return v2 - 1;
+          return 3 - v2;
+      };
+
+      var getnotefreq = function (n) {
+          // 174.61.. / 44100 = 0.003959503758 (F3)
+          return 0.003959503758 * (2 ** ((n - 128) / 12));
+      };
+
+      var createNote = function (instr, n, rowLen) {
+          var osc1 = mOscillators[instr.i[0]],
+              o1vol = instr.i[1],
+              o1xenv = instr.i[3]/32,
+              osc2 = mOscillators[instr.i[4]],
+              o2vol = instr.i[5],
+              o2xenv = instr.i[8]/32,
+              noiseVol = instr.i[9],
+              attack = instr.i[10] * instr.i[10] * 4,
+              sustain = instr.i[11] * instr.i[11] * 4,
+              release = instr.i[12] * instr.i[12] * 4,
+              releaseInv = 1 / release,
+              expDecay = -instr.i[13]/16,
+              arp = instr.i[14],
+              arpInterval = rowLen * (2 **(2 - instr.i[15]));
+
+          var noteBuf = new Int32Array(attack + sustain + release);
+
+          // Re-trig oscillators
+          var c1 = 0, c2 = 0;
+
+          // Local variables.
+          var j, j2, e, rsample, o1t, o2t;
+
+          // Generate one note (attack + sustain + release)
+          for (j = 0, j2 = 0; j < attack + sustain + release; j++, j2++) {
+              if (j2 >= 0) {
+                  // Switch arpeggio note.
+                  arp = (arp >> 8) | ((arp & 255) << 4);
+                  j2 -= arpInterval;
+
+                  // Calculate note frequencies for the oscillators
+                  o1t = getnotefreq(n + (arp & 15) + instr.i[2] - 128);
+                  o2t = getnotefreq(n + (arp & 15) + instr.i[6] - 128) * (1 + 0.0008 * instr.i[7]);
+              }
+
+              // Envelope
+              e = 1;
+              if (j < attack) {
+                  e = j / attack;
+              } else if (j >= attack + sustain) {
+                  e = (j - attack - sustain) * releaseInv;
+                  e = (1 - e) * (3 ** (expDecay * e));
+              }
+
+              // Oscillator 1
+              c1 += o1t * e ** o1xenv;
+              rsample = osc1(c1) * o1vol;
+
+              // Oscillator 2
+              c2 += o2t * e ** o2xenv;
+              rsample += osc2(c2) * o2vol;
+
+              // Noise oscillator
+              if (noiseVol) {
+                  rsample += (2 * Math.random() - 1) * noiseVol;
+              }
+
+              // Add to (mono) channel buffer
+              noteBuf[j] = (80 * rsample * e) | 0;
+          }
+
+          return noteBuf;
+      };
+
+
+      //--------------------------------------------------------------------------
+      // Private members
+      //--------------------------------------------------------------------------
+
+      // Array of oscillator functions
+      var mOscillators = [
+          osc_sin,
+          osc_square,
+          osc_saw,
+          osc_tri
+      ];
+
+      // Private variables set up by init()
+      var mSong, mLastRow, mCurrentCol, mNumWords, mMixBuf;
+
+
+      //--------------------------------------------------------------------------
+      // Initialization
+      //--------------------------------------------------------------------------
+
+      this.init = function (song) {
+          // Define the song
+          mSong = song;
+
+          // Init iteration state variables
+          mLastRow = song.endPattern;
+          mCurrentCol = 0;
+
+          // Prepare song info
+          mNumWords =  song.rowLen * song.patternLen * (mLastRow + 1) * 2;
+
+          // Create work buffer (initially cleared)
+          mMixBuf = new Int32Array(mNumWords);
+      };
+
+
+      //--------------------------------------------------------------------------
+      // Public methods
+      //--------------------------------------------------------------------------
+
+      // Generate audio data for a single track
+      this.generate = function () {
+          // Local variables
+          var i, j, p, row, col, n, cp,
+              k, t, rsample, rowStartSample, f;
+
+          // Put performance critical items in local variables
+          var chnBuf = new Int32Array(mNumWords),
+              instr = mSong.songData[mCurrentCol],
+              rowLen = mSong.rowLen,
+              patternLen = mSong.patternLen;
+
+          // Clear effect state
+          var low = 0, band = 0, high;
+          var lsample, filterActive = false;
+
+          // Clear note cache.
+          var noteCache = [];
+
+           // Patterns
+           for (p = 0; p <= mLastRow; ++p) {
+              cp = instr.p[p];
+
+              // Pattern rows
+              for (row = 0; row < patternLen; ++row) {
+                  // Execute effect command.
+                  var cmdNo = cp ? instr.c[cp - 1].f[row] : 0;
+                  if (cmdNo) {
+                      instr.i[cmdNo - 1] = instr.c[cp - 1].f[row + patternLen] || 0;
+
+                      // Clear the note cache since the instrument has changed.
+                      if (cmdNo < 17) {
+                          noteCache = [];
+                      }
+                  }
+
+                  // Put performance critical instrument properties in local variables
+                  var oscLFO = mOscillators[instr.i[16]],
+                      lfoAmt = instr.i[17] / 512,
+                      lfoFreq = (2 ** (instr.i[18] - 9)) / rowLen,
+                      fxLFO = instr.i[19],
+                      fxFilter = instr.i[20],
+                      fxFreq = instr.i[21] * 43.23529 * 3.141592 / 44100,
+                      q = 1 - instr.i[22] / 255,
+                      dist = instr.i[23] * 1e-5,
+                      drive = instr.i[24] / 32,
+                      panAmt = instr.i[25] / 512,
+                      panFreq = 6.283184 * (2 ** (instr.i[26] - 9)) / rowLen,
+                      dlyAmt = instr.i[27] / 255,
+                      dly = instr.i[28] * rowLen & ~1;  // Must be an even number
+
+                  // Calculate start sample number for this row in the pattern
+                  rowStartSample = (p * patternLen + row) * rowLen;
+
+                  // Generate notes for this pattern row
+                  for (col = 0; col < 4; ++col) {
+                      n = cp ? instr.c[cp - 1].n[row + col * patternLen] : 0;
+                      if (n) {
+                          if (!noteCache[n]) {
+                              noteCache[n] = createNote(instr, n, rowLen);
+                          }
+
+                          // Copy note from the note cache
+                          var noteBuf = noteCache[n];
+                          for (j = 0, i = rowStartSample * 2; j < noteBuf.length; j++, i += 2) {
+                            chnBuf[i] += noteBuf[j];
+                          }
+                      }
+                  }
+
+                  // Perform effects for this pattern row
+                  for (j = 0; j < rowLen; j++) {
+                      // Dry mono-sample
+                      k = (rowStartSample + j) * 2;
+                      rsample = chnBuf[k];
+
+                      // We only do effects if we have some sound input
+                      if (rsample || filterActive) {
+                          // State variable filter
+                          f = fxFreq;
+                          if (fxLFO) {
+                              f *= oscLFO(lfoFreq * k) * lfoAmt + 0.5;
+                          }
+                          f = 1.5 * Math.sin(f);
+                          low += f * band;
+                          high = q * (rsample - band) - low;
+                          band += f * high;
+                          rsample = fxFilter == 3 ? band : fxFilter == 1 ? high : low;
+
+                          // Distortion
+                          if (dist) {
+                              rsample *= dist;
+                              rsample = rsample < 1 ? rsample > -1 ? osc_sin(rsample*.25) : -1 : 1;
+                              rsample /= dist;
+                          }
+
+                          // Drive
+                          rsample *= drive;
+
+                          // Is the filter active (i.e. still audiable)?
+                          filterActive = rsample * rsample > 1e-5;
+
+                          // Panning
+                          t = Math.sin(panFreq * k) * panAmt + 0.5;
+                          lsample = rsample * (1 - t);
+                          rsample *= t;
+                      } else {
+                          lsample = 0;
+                      }
+
+                      // Delay is always done, since it does not need sound input
+                      if (k >= dly) {
+                          // Left channel = left + right[-p] * t
+                          lsample += chnBuf[k-dly+1] * dlyAmt;
+
+                          // Right channel = right + left[-p] * t
+                          rsample += chnBuf[k-dly] * dlyAmt;
+                      }
+
+                      // Store in stereo channel buffer (needed for the delay effect)
+                      chnBuf[k] = lsample | 0;
+                      chnBuf[k+1] = rsample | 0;
+
+                      // ...and add to stereo mix buffer
+                      mMixBuf[k] += lsample | 0;
+                      mMixBuf[k+1] += rsample | 0;
+                  }
+              }
+          }
+
+          // Next iteration. Return progress (1.0 == done!).
+          mCurrentCol++;
+          return mCurrentCol / mSong.numChannels;
+      };
+
+      // Create a AudioBuffer from the generated audio data
+      this.createAudioBuffer = function(context) {
+          var buffer = context.createBuffer(2, mNumWords / 2, 44100);
+          for (var i = 0; i < 2; i ++) {
+              var data = buffer.getChannelData(i);
+              for (var j = i; j < mNumWords; j += 2) {
+                  data[j >> 1] = mMixBuf[j] / 65536;
+              }
+          }
+          return buffer;
+      };
+      
+      // Create a WAVE formatted Uint8Array from the generated audio data
+      this.createWave = function() {
+          // Create WAVE header
+          var headerLen = 44;
+          var l1 = headerLen + mNumWords * 2 - 8;
+          var l2 = l1 - 36;
+          var wave = new Uint8Array(headerLen + mNumWords * 2);
+          wave.set(
+              [82,73,70,70,
+               l1 & 255,(l1 >> 8) & 255,(l1 >> 16) & 255,(l1 >> 24) & 255,
+               87,65,86,69,102,109,116,32,16,0,0,0,1,0,2,0,
+               68,172,0,0,16,177,2,0,4,0,16,0,100,97,116,97,
+               l2 & 255,(l2 >> 8) & 255,(l2 >> 16) & 255,(l2 >> 24) & 255]
+          );
+
+          // Append actual wave data
+          for (var i = 0, idx = headerLen; i < mNumWords; ++i) {
+              // Note: We clamp here
+              var y = mMixBuf[i];
+              y = y < -32767 ? -32767 : (y > 32767 ? 32767 : y);
+              wave[idx++] = y & 255;
+              wave[idx++] = (y >> 8) & 255;
+          }
+
+          // Return the WAVE formatted typed array
+          return wave;
+      };
+
+      // Get n samples of wave data at time t [s]. Wave data in range [-2,2].
+      this.getData = function(t, n) {
+          var i = 2 * Math.floor(t * 44100);
+          var d = new Array(n);
+          for (var j = 0; j < 2*n; j += 1) {
+              var k = i + j;
+              d[j] = t > 0 && k < mMixBuf.length ? mMixBuf[k] / 32768 : 0;
+          }
+          return d;
+      };
+  };
+
+  class Splode{
+      constructor(x,y,life, color){
+      this.x = x;
+      this.y = y;
+      this.lifeMax = life;
+      this.life = life;
+      this.alive = true;
+      this.color = color;
+  }
+  draw(){
+     
+      r.pat = r.dither[15- Math.floor( (this.life/this.lifeMax) * 15)];
+      for(let i = Math.floor(this.life/10); i > 0; i--){
+          r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life-i, this.color);
+      }r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life, this.color);
+      r.pat = r.dither[0];
+  }
+  update(){
+      if(!this.alive){
+          return
+      }
+      if(this.life > 0){
+          this.life-=1;
+      }
+      else {
+          this.alive = false;
+      }
+  }
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max + 1 - min) + min);
+  }
+  function randFloat(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  function lerp(a, b, x){
+     return a + (b -a ) * x;
+  }
+
+  function playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop = false) {
+
+    var source = window.audioCtx.createBufferSource();
+    var gainNode = window.audioCtx.createGain();
+    var panNode = window.audioCtx.createStereoPanner();
+
+    source.buffer = buffer;
+    source.connect(panNode);
+    panNode.connect(gainNode);
+    gainNode.connect(audioMaster);
+
+    source.playbackRate.value = playbackRate;
+    source.loop = loop;
+    gainNode.gain.value = volume;
+    panNode.pan.value = pan;
+    source.start();
+    return {volume: gainNode, sound: source};
+
+  }
+
+  const Key = {
+
+    _pressed: {},
+    _released: {},
+
+    LEFT: 37,
+    UP: 38,
+    RIGHT: 39,
+    DOWN: 40,
+    SPACE: 32,
+    ONE: 49,
+    TWO: 50,
+    THREE: 51,
+    FOUR: 52,
+    a: 65,
+    c: 67,
+    w: 87,
+    s: 83,
+    d: 68,
+    z: 90,
+    x: 88,
+    f: 70,
+    p: 80,
+    q: 81,
+    r: 82,
+    m: 77,
+    h: 72,
+
+    isDown(keyCode) {
+        return this._pressed[keyCode];
+    },
+
+    justReleased(keyCode) {
+        return this._released[keyCode];
+    },
+
+    onKeydown(event) {
+        this._pressed[event.keyCode] = true;
+    },
+
+    onKeyup(event) {
+        this._released[event.keyCode] = true;
+        delete this._pressed[event.keyCode];
+
+    },
+
+    update() {
+        this._released = {};
+    }
+  };
+
+  class Player {
+      constructor(x, y, z=0) {
+          this.x = x;
+          this.y = y;
+          this.z = z;
+          this.width = 8;
+          this.height = 8;
+          this.speed = {x: 2, y: 2};
+          this.velocity = {x: 0, y: 0};
+          this.drag = {x: 0.8, y: 0.8};
+          this.target = {x: 0,y: 0, distance: 0};
+          this.alive = true;
+      }
+
+      draw(){
+          r.fillCircle(
+              this.x - view.x,
+              this.y - view.y + Math.sin(t/10)*5, this.width/2,
+              22);
+      }
+
+      update(){
+          this.x += this.velocity.x;
+          this.y += this.velocity.y;
+          let xDelta = this.target.x - this.x;
+          let yDelta = this.target.y - this.y;
+
+          this.target.distance = Math.sqrt(xDelta * xDelta + yDelta * yDelta);
+          
+          if(this.target.distance < 5){
+              this.velocity.x *= this.drag.x;
+              this.velocity.y *= this.drag.y;
+          }
+
+          splodes.push(new Splode(this.x, this.y+Math.sin(t/10)*7, randInt(5, 10), randInt(18, 22)));
+          return 0;
+      }
+
+      move(targetX, targetY){
+          this.target.x = targetX;
+          this.target.y = targetY;
+          let xDelta = this.target.x - this.x;
+          let yDelta = this.target.y - this.y;
+          let direction = Math.atan2(yDelta, xDelta);
+          this.velocity.x = Math.cos(direction) * this.speed.x;
+          this.velocity.y = Math.sin(direction) * this.speed.y;
+      }
+  }
+
+  // This music has been exported by SoundBox. You can use it with
+      // http://sb.bitsnbites.eu/player-small.js in your own product.
+
+      // See http://sb.bitsnbites.eu/demo.html for an example of how to
+      // use it in a demo.
+
+      // Song data
+      var cellComplete = {
+        songData: [
+          { // Instrument 0
+            i: [
+            2, // OSC1_WAVEFORM
+            100, // OSC1_VOL
+            128, // OSC1_SEMI
+            0, // OSC1_XENV
+            3, // OSC2_WAVEFORM
+            201, // OSC2_VOL
+            128, // OSC2_SEMI
+            0, // OSC2_DETUNE
+            0, // OSC2_XENV
+            0, // NOISE_VOL
+            5, // ENV_ATTACK
+            6, // ENV_SUSTAIN
+            58, // ENV_RELEASE
+            0, // ENV_EXP_DECAY
+            0, // ARP_CHORD
+            0, // ARP_SPEED
+            0, // LFO_WAVEFORM
+            195, // LFO_AMT
+            6, // LFO_FREQ
+            1, // LFO_FX_FREQ
+            2, // FX_FILTER
+            135, // FX_FREQ
+            0, // FX_RESONANCE
+            0, // FX_DIST
+            32, // FX_DRIVE
+            147, // FX_PAN_AMT
+            6, // FX_PAN_FREQ
+            28, // FX_DELAY_AMT
+            6 // FX_DELAY_TIME
+            ],
+            // Patterns
+            p: [1],
+            // Columns
+            c: [
+              {n: [147,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,152,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,154],
+               f: []}
+            ]
+          },
+        ],
+        rowLen: 5088,   // In sample lengths
+        patternLen: 32,  // Rows per pattern
+        endPattern: 0,  // End pattern
+        numChannels: 1  // Number of channels
+      };
+
+  // This music has been exported by SoundBox. You can use it with
+      // http://sb.bitsnbites.eu/player-small.js in your own product.
+
+      // See http://sb.bitsnbites.eu/demo.html for an example of how to
+      // use it in a demo.
+
+      // Song data
+      var tada = {
+        songData: [
+          { // Instrument 0
+            i: [
+            2, // OSC1_WAVEFORM
+            100, // OSC1_VOL
+            128, // OSC1_SEMI
+            0, // OSC1_XENV
+            3, // OSC2_WAVEFORM
+            201, // OSC2_VOL
+            128, // OSC2_SEMI
+            0, // OSC2_DETUNE
+            0, // OSC2_XENV
+            0, // NOISE_VOL
+            5, // ENV_ATTACK
+            6, // ENV_SUSTAIN
+            58, // ENV_RELEASE
+            0, // ENV_EXP_DECAY
+            0, // ARP_CHORD
+            0, // ARP_SPEED
+            0, // LFO_WAVEFORM
+            195, // LFO_AMT
+            6, // LFO_FREQ
+            1, // LFO_FX_FREQ
+            2, // FX_FILTER
+            135, // FX_FREQ
+            0, // FX_RESONANCE
+            0, // FX_DIST
+            32, // FX_DRIVE
+            147, // FX_PAN_AMT
+            6, // FX_PAN_FREQ
+            55, // FX_DELAY_AMT
+            6 // FX_DELAY_TIME
+            ],
+            // Patterns
+            p: [1],
+            // Columns
+            c: [
+              {n: [151,151,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,154,154,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,159,159,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,135,135],
+               f: []}
+            ]
+          },
+        ],
+        rowLen: 6014,   // In sample lengths
+        patternLen: 32,  // Rows per pattern
+        endPattern: 0,  // End pattern
+        numChannels: 1  // Number of channels
+      };
+
+  //global r = RetroBuffer
+
+  /*
+  You may notice that the function accepts 4 parameters:
+  x, y, z, and vars. The vars parameter will be an object with at least 6 members:
+  camX, camY, camZ, cx, cy, and scale.
+  cx & cy are just the center of the screen. The value of scale determines how much
+  "perspective" is seen in the output. a large scale will result in more isomorphic
+  rendering, whereas a small scale will cause objects in the distance to shrink rapidly.
+
+  The function returns one of two possible objects, depending on whether the vertex is
+  in front of the camera or not. If in front, the function returns the projected positions
+  x and y on a 2D plane in front of the camera, as well as d, the distance to the vertex,
+  which is useful for say, adjusting line weights, as will be shown. If the vertex is behind
+  the camera, the function simply returns d = -1. So to render a scene, we need only check
+  that d != -1 for each vertex, then connect them.
+
+  */
+  function project3D(x, y, z, vars){
+
+      var p,d;
+      var {cos, sin, sqrt, atan2} = Math;
+      
+      // apply camera position
+      x -= vars.camX;
+      y -= vars.camY;
+      z -= vars.camZ;
+      
+      // apply camera rotation
+      p = atan2(x,z);
+      d = sqrt(x*x+z*z);
+      x = sin(p-vars.yaw)*d;
+      z = cos(p-vars.yaw)*d;
+      p = atan2(y,z);
+      d = sqrt(y*y+z*z);
+      y = sin(p-vars.pitch)*d;
+      z = cos(p-vars.pitch)*d;
+      
+      // create invisible horizontal line in front of camera
+      var x1 = -100,y1=1,x2=100,y2=1;
+      
+      // create invisible line from camera to to vertex
+      var x3 = 0,y3 = 0,x4 = x,y4 = z;
+      
+      // find intersection between the two lines, if any
+      var uc = (y4-y3)*(x2-x1)-(x4-x3)*(y2-y1);
+      var ua = ((x4-x3)*(y1-y3)-(y4-y3)*(x1-x3))/uc;
+      var ub = ((x2-x1)*(y1-y3)-(y2-y1)*(x1-x3))/uc;
+      
+      // if intersection occurs within both line segments...
+      // return the 2D projected coordinates,
+      // or else the vertex is outside of the field of vision
+      if(ua>0&&ua<1&&ub>0&&ub<1){
+        return {
+          x:vars.cx+(x1+ua*(x2-x1))*vars.scale,
+          y:vars.cy+y/z*vars.scale,
+          d:sqrt(x*x+y*y+z*z)
+        };
+      }else {
+        return {d:-1};
+      }
+  }
+
+  function Vert(x,y,z){
+      this.x = x;
+      this.y = y;
+      this.z = z;
+  }
+  const shapes = {
+      CIRCLE: 0,
+      SQUARE: 1,
+  };
+
+  class Splat{
+      constructor(x,y,z, opt={
+          fill: {
+              color1: 22,
+              color2: 23,
+              pattern: r.dither[0]
+          },
+          shape: shapes.CIRCLE,
+          size: 1
+      }){
+          this.vert = new Vert(x,y,z);
+          this.size = opt.size;
+          this.shape = opt.shape;
+          this.fill = opt.fill;
+      }
+      draw(camera){
+          let screenPosition = project3D(this.vert.x, this.vert.y, this.vert.z, camera);
+          if(screenPosition.d != -1){
+              var {x,y} = screenPosition;
+              var size = this.size;
+              var shape = this.shape;
+              var fill = this.fill; 
+              var {color1, color2, pattern} = fill;
+
+              var scale =  10/screenPosition.d;
+              var screenSize = size * scale;
+              
+              if(shape == shapes.CIRCLE){
+                  r.cursorColor2 = color2;
+                  r.pat = pattern;
+                  if(screenSize > size);else {
+                      if(screenSize < 1){
+                          r.pset(x,y,color1);
+                      }else {
+                          r.fillCircle(x,y,screenSize, color1, screenPosition.d);
+                          r.pat = r.dither[0];
+                          r.circle(x,y, screenSize, 0, screenPosition.d);
+                      }
+                  }
+                  r.cursorColor2 = 64;
+                  r.pat = r.dither[0];
+              }else if(shape == shapes.SQUARE){
+                  r.cursorColor2 = color2;
+                  r.pat = pattern;
+                  r.fillRect(
+                      x-screenSize/2,
+                      y-screenSize/2,
+                      size*scale,
+                      size*scale,
+                      color1,
+                      screenPosition.d
+                      );
+                  r.cursorColor2 = 64;
+                  r.pat = r.dither[0];
+              }
+          }
+          scale++;
+      }
+  }
+
+  if(innerWidth < 800){
+    screenFactor = 2;
+    w = innerWidth/2;
+    h = innerHeight/2;
+  }
+  else {
+    screenFactor = 3;
+    w = Math.floor(innerWidth/3);
+    h = Math.floor(innerHeight/3);
+  }
+
+  view = { x: 0, y: 0, z: 0 };
+  camera = {};
+  cursor = { x: 0, y: 0, isDown: false };
+  viewTarget = { x: 0, y: 0 };
+  then = 0; elapsed = 0; now = 0;
+  framesPerSecond = 60;
+  fpsInterval = 1000 / framesPerSecond;
+
+
+
+  window.t = 1;
+  splodes = [];
+  fans = [];
+  splats = [];
+  window.player = new Player(100, 100);
+  screenCenterX = w/2; screenCenterY = h/2;
+  gamestate=0;
+  paused = false;
+  started=false;
+  sounds = {};
+  soundsReady = 0;
+  totalSounds = 2;
+  audioTxt = "";
+  debugText = "";
+
+  const PRELOAD = 0;
+  const GAME = 1;
+  const TITLESCREEN = 2;
+
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = `
+  canvas {display: inline-block; height:100%; width:100%;  image-rendering: pixelated;
+    image-rendering: crisp-edges; background-color: black;}
+
+  * {
+    overflow: hidden;
+    background-color: black;
+    margin: 0;
+    }
+`;
+  document.head.appendChild(styleSheet);
+
+
+  const atlasURL = 'data:image/webp;base64,UklGRgYBAABXRUJQVlA4TPkAAAAvPwAAAAmAIPx/e4jof2oBEIT/bw8R/U/BbQAAZBPbrG0bm77naNt2L3FjAQCpfJvZtdk21m7QhbpU769xtW3XZicCAJBRmm1G6wHry3sBv3oJ2TaTzQgMgykOw60sEIPJ/NfmfEb0m+KfSWGWH/i/u8auMllLp0n52cfoLvVtXVYKFAcUZfWj5j87X4mHi8bzX1l8HrX3pPYcTlvOVVr9qo3Lavb/rXmB1LJcpoDHLXpMG3GbpNff9Hvj+WI8GbdW+8mBP7FawBlU3S655I2Sr7TX+Qybu3urf71W96O6lRfDTjcaDs1JZ6CujZezdr8z65838/1hdwAA';
+  atlasImage = new Image();
+  atlasImage.src = atlasURL;
+
+  atlasImage.onload = function(){ 
+    let c = document.createElement('canvas');
+    c.width = 64;
+    c.height = 64;
+    let ctx = c.getContext('2d');
+    ctx.drawImage(this, 0, 0);
+    atlas = new Uint32Array( ctx.getImageData(0,0,64, 64).data.buffer );
+    window.r = new RetroBuffer(w, h, atlas, 10);
+    gameInit();
+  };
+
+  function gameInit(){
+    window.playSound = playSound;
+    gamebox = document.getElementById("game");
+    gamebox.appendChild(r.c);
+    mainLoop();
+  }
+
+  function initGameData(){
+  //map generation, pre-drawing, etc would go here
+    for(let i = 0; i < 3200; i++){
+      let spread = 60;
+      let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(-spread, spread), 
+      {
+        fill: { color1: 14, color2: 15, pattern: r.dither[randInt(0, 16)] },
+        size: 20,
+        shape: shapes.CIRCLE
+      });
+      splats.push( splat );
+    }
+    splats.sort(function(a,b){ return a.vert.z - b.vert.z; });
+    //camX, camY, camZ, cx, cy, and scale.
+    camera = {
+      camX: 0,
+      camY: 0,
+      camZ: -1,
+      pitch: 0,
+      yaw: 0,
+      cx: screenCenterX,
+      cy: screenCenterY,
+      scale: 70
+    };
+  }
+
+  function initAudio(){
+    audioCtx = new AudioContext;
+    audioMaster = audioCtx.createGain();
+    compressor = audioCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-60, audioCtx.currentTime);
+      compressor.knee.setValueAtTime(40, audioCtx.currentTime); 
+      compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+      compressor.attack.setValueAtTime(0, audioCtx.currentTime);
+      compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+    audioMaster.connect(compressor);
+    compressor.connect(audioCtx.destination);
+
+    sndData = [
+      {name:'cellComplete', data: cellComplete},
+      {name:'tada', data: tada},
+
+    ];
+    totalSounds = sndData.length;
+    soundsReady = 0;
+    sndData.forEach(function(o){
+      const sndGenerator = new MusicPlayer();
+      sndGenerator.init(o.data);
+      let done = false;
+      setInterval(function () {
+        if (done) {
+          return;
+        }
+        done = sndGenerator.generate() == 1;
+        soundsReady+=done;
+        if(done){
+          let wave = sndGenerator.createWave().buffer;
+          audioCtx.decodeAudioData(wave, function(buffer) {
+            sounds[o.name] = buffer;
+          });
+        }
+      },0);
+    });
+  }
+
+  function updateGame(){
+    t+=1;
+    splodes.forEach(e=>e.update());
+    splats.forEach(e=>{
+      // newPoint = matrix_rotate(e, 0, 0.01, 0 )
+      // e.x = newPoint.x;
+      // e.y = newPoint.y;
+      // e.z = newPoint.z;
+    });
+
+    pruneDead(splodes);
+
+    player.update();
+
+    viewTarget.x = player.x - screenCenterX;
+    viewTarget.y = player.y - screenCenterY;
+    view.x = lerp(view.x, viewTarget.x, 0.1);
+    view.y = lerp(view.y, viewTarget.y, 0.1);
+    camera.camX = view.x / 5;
+    camera.camY = view.y / 5;
+    
+    if(Key.justReleased(Key.r)){
+      resetGame();
+    }
+    if(Key.isDown(Key.w)){ camera.camZ += 0.1; }
+    if(Key.isDown(Key.s)){ camera.camZ -= 0.1; }
+    if(Key.isDown(Key.q)){ camera.pitch += 0.01; }
+    let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
+    debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
+  }
+
+  function drawGame(){
+    r.clr(1, r.SCREEN);
+
+    player.draw();
+    splats.forEach(e=>e.draw(camera));
+    r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
+    r.render();
+  }
+
+  function resetGame(){
+    window.t = 1;
+    splodes = [];
+    initGameData();
+    gamestate = GAME;
+  }
+
+  function preload(){
+    r.clr(0, r.SCREEN);
+
+    r.text([audioTxt, w/2-2, 100, 1, 3, 'center', 'top', 1, 22]);
+   
+    audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
+    if(soundsReady == totalSounds){
+      audioTxt="ALL SOUNDS RENDERED.\nTAP OR CLICK TO CONTINUE";
+    } else if (started){
+      audioTxt = "SOUNDS RENDERING... " + soundsReady;
+    } else {
+      audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
+    }
+
+    // if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
+    //     //playSound(sounds.tada);
+    //     gamestate = GAME
+      
+    // }; 
+    if(cursor.isDown && soundsReady == totalSounds){
+      gamestate = GAME;
+    }
+
+    r.render();
+  }
+
+  function titlescreen(){
+    if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
+      gamestate = 1;
+    }
+
+    r.clr(14, r.SCREEN);
+    let cols = Math.ceil(w/32), rows = Math.ceil(h/32);
+    let col = 32, row = 32;
+    for(let i = 0; i < cols; i++){
+      r.line(i * col, 0, i * col, r.HEIGHT, 2);
+    }
+    for(let i = 0; i < rows; i++){
+      r.line(0, i * row, r.WIDTH, i * row, 2);
+    }
+    let text = "TITLE SCREEN";
+    r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
+    text = "CLICK TO BEGIN";
+    r.text([text, w/2-2, 120, 1, 3, 'center', 'top', 1, 22]);
+
+
+    r.render();
+  }
+
+
+  //initialize  event listeners--------------------------
+  window.addEventListener('keyup', function (event) {
+    Key.onKeyup(event);
+  }, false);
+  window.addEventListener('keydown', function (event) {
+    Key.onKeydown(event);
+  }, false);
+  window.addEventListener('blur', function (event) {
+    paused = true;
+  }, false);
+  window.addEventListener('focus', function (event) {
+    paused = false;
+  }, false);
+
+  window.addEventListener('mousemove', function (event) {
+    if(cursor.isDown){handleInput(event);}} , false);
+  window.addEventListener('mousedown', function (event) {
+    cursor.isDown = true;
+    handleInput(event);
+  } , false);
+  window.addEventListener('mouseup', function (event) {
+    cursor.isDown = false;
+    handleInput(event);
+  } , false);
+
+  window.addEventListener('touchstart', function (event) {
+    
+    if(gamestate == PRELOAD){
+      onWindowInteraction(event); 
+    } else {
+      cursor.isDown = true;
+      handleInput(event);
+    }
+  }, false);
+
+  window.addEventListener('touchend', function (event) {
+    cursor.isDown = false;
+  } , false);
+
+  onWindowInteraction = function(e){
+    x=e.pageX;y=e.pageY;
+    paused = false;
+    switch(gamestate){
+        case PRELOAD: 
+          if(soundsReady == 0 && !started){
+            initGameData();
+            initAudio();
+            started = true;
+          }
+        break;
+
+        case TITLESCREEN: 
+        break;
+
+        case GAME:
+          
+        break;
+
+        case GAMEOVER: 
+    }
+  };
+
+  onclick=e=>{ onWindowInteraction(e); };
+  ontouchstart=e=>{ onWindowInteraction(e);};
+
+  function pruneDead(entitiesArray){
+    for(let i = 0; i < entitiesArray.length; i++){
+      let e = entitiesArray[i];
+      if(!e.alive){
+        entitiesArray.splice(i,1);
+      }
+    }
+  }
+
+  function gameLoop(){
+    {
+      switch(gamestate){
+        case PRELOAD: 
+          preload();
+          break;
+        case GAME: 
+          updateGame();
+          drawGame();
+          break;
+        case TITLESCREEN: 
+          titlescreen();
+          break;
+      }
+    }
+  }
+
+  function mainLoop(){
+
+    requestAnimationFrame(mainLoop);
+
+    // calc elapsed time since last loop
+    now = Date.now();
+    elapsed = (now - then);
+
+    // if enough time has elapsed, draw the next frame
+    if (elapsed > fpsInterval) {
+
+        // Get ready for next frame by setting then=now, but also adjust for your
+        // specified fpsInterval not being a multiple of RAF's interval (16.7ms) <--used to be pretty normal
+        //to expect 60fps.  nowadays, it could be 120fps or even 240fps.  So, we need to adjust for that.
+        then = now - (elapsed % fpsInterval);
+
+        // Put your drawing code here
+        gameLoop();
+    }
+    Key.update();
+  }
+
+  function handleInput(e){
+    let screenX = Math.floor(e.pageX / screenFactor);
+    let screenY = Math.floor(e.pageY / screenFactor);
+    let worldY = screenY + view.y;
+    let worldX = screenX + view.x;
+    if(!cursor.isDown){
+      player.move(worldX, worldY);
+    }
+    else {
+      splodes.push(new Splode(worldX, worldY, randInt(5, 10), randInt(0,63)));
+    }
+  }
+
+})();

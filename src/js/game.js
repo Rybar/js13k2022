@@ -7,9 +7,10 @@ import Fan from './entities/fan.js';
 import cellComplete from './sounds/cellComplete.js';
 import tada from './sounds/tada.js';
 
-import { playSound, Key, lerp, randInt, randFloat } from './core/utils.js';
+import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
+import { matrix_rotate, project3D, Vert, Splat, shapes } from './core/threedee.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -22,7 +23,8 @@ else {
   h = Math.floor(innerHeight/3);
 }
 
-view = { x: 0, y: 0 };
+view = { x: 0, y: 0, z: 0 };
+camera = {};
 cursor = { x: 0, y: 0, isDown: false };
 viewTarget = { x: 0, y: 0 };
 then = 0; elapsed = 0; now = 0;
@@ -34,6 +36,7 @@ fpsInterval = 1000 / framesPerSecond;
 window.t = 1;
 splodes = [];
 fans = [];
+splats = [];
 window.player = new Player(100, 100);
 screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
@@ -88,30 +91,27 @@ function gameInit(){
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
-  let chanceToStartAlive = 0.55;
-  let simulationSteps = 5;
-  let birthLimit = 5;
-  let deathLimit = 4;
-  let numberOfFans = 10;
-
-  window.map = new Map(200,200, 0,0)
-  map.cells.forEach(e=>{
-    e.type = randFloat(0,1) < chanceToStartAlive ? 1 : 0;
-  })
-  for(let i = 0; i < simulationSteps; i++){
-    map.doSimulationStep(birthLimit, deathLimit);
+  for(let i = 0; i < 3200; i++){
+    let spread = 60;
+    let splat = new Splat(randFloat(-spread, spread), randFloat(-spread,spread), randFloat(-spread, spread), 
+    {
+      fill: { color1: 14, color2: 15, pattern: r.dither[randInt(0, 16)] },
+      size: 20,
+      shape: shapes.CIRCLE
+    });
+    splats.push( splat );
   }
-
-//place fans--------------------------------------------------------------
-  for(let i = 0; i < numberOfFans; i++){
-    for(let numberOfTries = 0; numberOfTries < 100; numberOfTries++){
-      let x = randInt(0, map.w);
-      let y = randInt(0, map.h);
-      if(map.cells[x + y * map.w].type == 1){
-        fans.push(new Fan(x * map.cellSize, y * map.cellSize));
-        break;
-      }
-    }
+  splats.sort(function(a,b){ return a.vert.z - b.vert.z; });
+  //camX, camY, camZ, cx, cy, and scale.
+  camera = {
+    camX: 0,
+    camY: 0,
+    camZ: -1,
+    pitch: 0,
+    yaw: 0,
+    cx: screenCenterX,
+    cy: screenCenterY,
+    scale: 70
   }
 }
 
@@ -158,6 +158,13 @@ function initAudio(){
 function updateGame(){
   t+=1;
   splodes.forEach(e=>e.update());
+  splats.forEach(e=>{
+    // newPoint = matrix_rotate(e, 0, 0.01, 0 )
+    // e.x = newPoint.x;
+    // e.y = newPoint.y;
+    // e.z = newPoint.z;
+  })
+
   pruneDead(splodes);
 
   player.update();
@@ -166,18 +173,25 @@ function updateGame(){
   viewTarget.y = player.y - screenCenterY;
   view.x = lerp(view.x, viewTarget.x, 0.1);
   view.y = lerp(view.y, viewTarget.y, 0.1);
+  camera.camX = view.x / 5;
+  camera.camY = view.y / 5;
   
   if(Key.justReleased(Key.r)){
     resetGame();
   }
+  if(Key.isDown(Key.w)){ camera.camZ += 0.1; }
+  if(Key.isDown(Key.s)){ camera.camZ -= 0.1; }
+  if(Key.isDown(Key.q)){ camera.pitch += 0.01; }
+  let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
+  debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
 }
 
 function drawGame(){
   r.clr(1, r.SCREEN)
-  map.draw();
-  fans.forEach(e=>e.draw());
-  splodes.forEach(e=>e.draw());
+
   player.draw();
+  splats.forEach(e=>e.draw(camera));
+  r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
   r.render();
 }
 
