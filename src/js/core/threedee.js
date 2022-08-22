@@ -109,9 +109,9 @@ export const shapes = {
 
 }
 
-export const DRAWDISTANCE = 1000;
-export const FADEDISTANCE = 950;
-export const FADEDISTANCE2 = 975;
+export const DRAWDISTANCE = 1500;
+export const FADEDISTANCE = 1450;
+export const FADEDISTANCE2 = 1475;
 
 export class Splat{
     constructor(x,y,z, opt={
@@ -151,7 +151,7 @@ export class Splat{
                 r.pat = pattern
                 
                 if(screenSize < 1){
-                    r.pset(x,y,color1);
+                    r.pset(x,y,color1, screenPosition.d);
                 }else{
                     r.fillCircle(x,y,screenSize, color1, screenPosition.d);
                     r.pat = r.dither[0];

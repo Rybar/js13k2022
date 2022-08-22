@@ -92,26 +92,29 @@ function gameInit(){
 
 function initGameData(){
 //map generation, pre-drawing, etc would go here
-  
-  for(let i = 0; i < 6000; i++){
-    let spread = 50;
-    let color1 = randInt(0, 63);
-    let color2 = color1++
-    let point = randomSpherePoint(0,0,0, spread);
+  for(let j = 0; j < 10; j++){
+    var sphereSpread = 300
+    var spherePoint = new Vert(randFloat(-sphereSpread, sphereSpread), randFloat(-sphereSpread, sphereSpread), randFloat(-sphereSpread, sphereSpread));
+    spread = randFloat(5, 50);
+    for(let i = 0; i < 4000; i++){
+      let color1 = randInt(0, 63);
+      let color2 = color1++
+      let point = randomSpherePoint(spherePoint.x, spherePoint.y, spherePoint.z, spread);
 
 
-    let splat = new Splat(
-      point.x, point.y, point.z,
-    {
-      fill: { color1: color1, color2: color2, pattern: r.dither[8] },
-      shape: shapes.SQUARE,
-      size: 20
-    });
-    splats.push( splat );
+      let splat = new Splat(
+        point.x, point.y, point.z,
+      {
+        fill: { color1: color1, color2: color2, pattern: r.dither[8] },
+        shape: choice([shapes.CIRCLE, shapes.SQUARE]),
+        size: randFloat(5, 15),
+      });
+      splats.push( splat );
+    }
   }
 
-  for(let i = 0; i < 10000; i++){
-    let spread = 250;
+  for(let i = 0; i < 15000; i++){
+    let spread = 700;
     let color1 = randInt(16, 19);
     let color2 = color1++
     let point = randomSpherePoint(0,0,0, spread);
@@ -121,7 +124,8 @@ function initGameData(){
       point.x, point.y, point.z,
     {
       fill: { color1: color1, color2: color2, pattern: r.dither[0] },
-      shape: shapes.POINT,
+      shape: shapes.CIRCLE,
+      size: randFloat(3,5),
       
     });
     splats.push( splat );
@@ -196,29 +200,53 @@ function updateGame(){
 
   pruneDead(splodes);
 
-  player.update();
+  //player.update();
 
   viewTarget.x = player.x - screenCenterX;
   viewTarget.y = player.y - screenCenterY;
-  view.x = lerp(view.x, viewTarget.x, 0.1);
+  //view.x = lerp(view.x, viewTarget.x, 0.1);
   view.y = lerp(view.y, viewTarget.y, 0.1);
-  camera.camX = view.x / 5;
-  camera.camY = view.y / 5;
+  //camera.camX = view.x / 5;
+  //camera.camY = view.y / 5;
   
   if(Key.justReleased(Key.r)){
     resetGame();
   }
-  if(Key.isDown(Key.w)){ camera.camZ += 0.8; }
-  if(Key.isDown(Key.s)){ camera.camZ -= 0.8; }
-  if(Key.isDown(Key.q)){ camera.yaw += 0.01; }
+
+  /*
+  playerVX+=Math.sin(yaw)*Math.cos(pitch)*accel;
+		playerVZ+=Math.cos(yaw)*Math.cos(pitch)*accel;
+		playerVY+=Math.sin(pitch)*accel;
+    */
+  if(Key.isDown(Key.w)){
+    let camVel = 5
+    camera.camX += Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
+    camera.camZ += Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
+    camera.camY += Math.sin(camera.pitch)*camVel;
+  }
+  
+  if(Key.isDown(Key.s)){
+    let camVel = 5
+
+    camera.camX -= Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
+    camera.camZ -= Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
+    camera.camY -= Math.sin(camera.pitch)*camVel;
+  }
+
+  if(Key.isDown(Key.UP)){ camera.pitch += 0.01; }
+  if(Key.isDown(Key.DOWN)){ camera.pitch -= 0.01; }
+  if(Key.isDown(Key.LEFT)){ camera.yaw -= 0.01; }
+  if(Key.isDown(Key.RIGHT)){ camera.yaw += 0.01; }
+
   let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
   debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
+
 }
 
 function drawGame(){
   r.clr(1, r.SCREEN)
 
-  player.draw();
+  //player.draw();
   splats.forEach(e=>e.draw(camera));
   r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
   r.render();
