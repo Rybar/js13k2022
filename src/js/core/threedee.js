@@ -109,9 +109,9 @@ export const shapes = {
 
 }
 
-export const DRAWDISTANCE = 1500;
-export const FADEDISTANCE = 1450;
-export const FADEDISTANCE2 = 1475;
+export const DRAWDISTANCE = 2000;
+export const FADEDISTANCE = 1800;
+export const FADEDISTANCE2 = 1975;
 
 export class Splat{
     constructor(x,y,z, opt={
@@ -155,6 +155,9 @@ export class Splat{
                 }else{
                     r.fillCircle(x,y,screenSize, color1, screenPosition.d);
                     r.pat = r.dither[0];
+                    if(this.fill.stroke){
+                        r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+                    }
                     //r.circle(x,y, screenSize, 0, screenPosition.d);
                 }
                 
@@ -166,11 +169,21 @@ export class Splat{
                 r.fillRect(
                     x-screenSize/2,
                     y-screenSize/2,
-                    size*scale,
-                    size*scale,
+                    screenSize,
+                    screenSize,
                     color1,
                     screenPosition.d
                     );
+                if(this.fill.stroke){
+                    r.rect(
+                        x-screenSize/2,
+                        y-screenSize/2,
+                        screenSize,
+                        screenSize,
+                        this.fill.stroke,
+                        screenPosition.d
+                        );
+                }
             }else if(shape == shapes.POINT){
                 
                 r.pat = pattern
@@ -211,4 +224,11 @@ export function randomSpherePoint(x0,y0,z0,radius){
     var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
     var z = z0 + (radius * Math.cos(phi));
     return new Vert(x,y,z);
+ }
+
+ export class shape{
+    constructor(x,y,z, splatArray){
+        this.location = new Vert(x,y,z);
+        this.splats = splatArray;
+    }
  }

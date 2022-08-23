@@ -10,7 +10,7 @@ import tada from './sounds/tada.js';
 import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
-import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint } from './core/threedee.js';
+import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE } from './core/threedee.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -37,7 +37,7 @@ window.t = 1;
 splodes = [];
 fans = [];
 splats = [];
-splatLines = [];
+window.splatShapes = [];
 window.player = new Player(100, 100);
 screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
@@ -91,47 +91,93 @@ function gameInit(){
 }
 
 function initGameData(){
-//map generation, pre-drawing, etc would go here
-  for(let j = 0; j < 10; j++){
-    var sphereSpread = 300
-    var spherePoint = new Vert(randFloat(-sphereSpread, sphereSpread), randFloat(-sphereSpread, sphereSpread), randFloat(-sphereSpread, sphereSpread));
-    spread = randFloat(5, 50);
-    for(let i = 0; i < 4000; i++){
-      let color1 = randInt(0, 63);
-      let color2 = color1++
-      let point = randomSpherePoint(spherePoint.x, spherePoint.y, spherePoint.z, spread);
-
-
+  let stars = [];
+  let locations = [
+    {x:0, y:0, rad: 100, colors: [16,17,19], quantity: 2000},
+  ]
+  for(let i=0; i<10; i++){
+    let rad = randFloat(0, Math.PI*2);
+    let distance = 200 + randFloat(0, 300);
+    locations.push({
+      x: Math.cos(rad)*distance,
+      y: Math.sin(rad)*distance,
+      rad: randInt(100,500),
+      colors: [30,31,32],
+      quantity: randInt(100,200),
+    })
+  }
+  locations.forEach(location=>{
+    stars = [];
+    for(let i = 0; i < location.quantity; i++){
+      let radius = location.rad;
+      let color1 = choice(location.colors);
+      let color2 = choice(location.colors);
+      //random points in a ring on the xy plane
+      let rad = randFloat(0, Math.PI*2);
+      let x = location.x + Math.sin(rad) * radius;
+      let y = location.y + Math.cos(rad) * radius;
+      let z = -DRAWDISTANCE/location.quantity * i;
+      let point = new Vert(x, y, z);
       let splat = new Splat(
         point.x, point.y, point.z,
       {
         fill: { color1: color1, color2: color2, pattern: r.dither[8] },
-        shape: choice([shapes.CIRCLE, shapes.SQUARE]),
-        size: randFloat(5, 15),
+        shape: shapes.CIRCLE,
+        size: randFloat(7,15),
+        
       });
-      splats.push( splat );
+      stars.push( splat )
     }
-  }
+    splatShapes.push(new shape(0,0,0, stars));
+  })
 
-  for(let i = 0; i < 15000; i++){
-    let spread = 700;
-    let color1 = randInt(16, 19);
-    let color2 = color1++
-    let point = randomSpherePoint(0,0,0, spread);
-
-
+  let chunks = [];
+  for(let i = 0; i < 25; i++){
+    let rad = randFloat(0, Math.PI*2);
+    let radius = 50;
+    let x = Math.sin(rad) * radius;
+    let y = Math.cos(rad) * radius;
+    let z = -DRAWDISTANCE/25 * i;
+    let point = new Vert(x, y, z);
     let splat = new Splat(
       point.x, point.y, point.z,
     {
-      fill: { color1: color1, color2: color2, pattern: r.dither[0] },
+      fill: { color1: 0, color2: 1, stroke: 19, pattern: r.dither[randInt(0,8)] },
       shape: shapes.CIRCLE,
-      size: randFloat(3,5),
-      
+      size: randInt(30, 70),
     });
-    splats.push( splat );
+    if(randFloat(0,1) > 0.9){
+      splat.size = 200;
+      splat.vert.x = Math.sin(rad) * 150;
+      splat.vert.y = Math.cos(rad) * 150;
+      splat.fill.stroke = 16;
+    }
+    chunks.push( splat )
   }
- 
-  splats.sort(function(a,b){ return a.vert.z - b.vert.z; });
+  splatShapes.push(new shape(0,0,0, chunks));
+
+  chunks = [];
+  for(let i = 0; i < 900; i++){
+    let rad = randFloat(0, Math.PI*2);
+    let radius = 50;
+    let x = Math.sin(rad) * radius;
+    let y = Math.cos(rad) * radius;
+    let z = -DRAWDISTANCE/4 * randInt(0,3) + Math.random() * 20;
+    let point = new Vert(x, y, z);
+    let splat = new Splat(
+      point.x, point.y, point.z,
+    {
+      fill: { color1: choice([0,41,42]), color2: choice([0,41,42]), stroke: 40, pattern: r.dither[randInt(0,8)] },
+      shape: shapes.SQUARE,
+      size: randInt(5, 15),
+    });
+    if(randFloat(0,1) > 0.98){
+      splat.size = randInt(80, 120);
+      
+    }
+    chunks.push( splat )
+  }
+  splatShapes.push(new shape(0,0,0, chunks));
 
 
 
@@ -139,12 +185,12 @@ function initGameData(){
   camera = {
     camX: 0,
     camY: 0,
-    camZ: -200,
+    camZ: -2000,
     pitch: 0,
     yaw: 0,
     cx: screenCenterX,
     cy: screenCenterY,
-    scale: 500
+    scale: 200
   }
 }
 
@@ -190,13 +236,13 @@ function initAudio(){
 
 function updateGame(){
   t+=1;
-  splodes.forEach(e=>e.update());
-  splats.forEach(e=>{
-    newPoint = matrix_rotate(e.vert, 0, 0, 0 )
-    e.vert.x = newPoint.x;
-    e.vert.y = newPoint.y;
-    e.vert.z = newPoint.z;
+  splatShapes.forEach(e=>{
+    e.splats.forEach(e=>{
+      e.vert.z-=5;
+      e.vert.z = e.vert.z % DRAWDISTANCE;
+    })
   })
+  
 
   pruneDead(splodes);
 
@@ -247,7 +293,9 @@ function drawGame(){
   r.clr(1, r.SCREEN)
 
   //player.draw();
-  splats.forEach(e=>e.draw(camera));
+  splatShapes.forEach(e=>{
+    e.splats.forEach(e=>e.draw(camera));
+  })
   r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
   r.render();
 }
