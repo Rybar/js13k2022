@@ -1,8 +1,7 @@
 3d sprite/voxel/splat thing in canvas2D
 
-figure out 3d maths for actual typical flight / fps controls
-w/z flys 'into' screen
 a d strafes left-right relative to look direction
+q e up/down 
 mousemove changes look at direction
 
 splat class
@@ -12,8 +11,10 @@ splat class
     shape type
         circle
         point
-        square
-        sprite
+        square  -with orientation?
+        rect
+        sprite with rotation
+        
 
 splat rendering
     scaled sprite

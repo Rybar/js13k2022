@@ -236,12 +236,12 @@ function initAudio(){
 
 function updateGame(){
   t+=1;
-  splatShapes.forEach(e=>{
-    e.splats.forEach(e=>{
-      e.vert.z-=5;
-      e.vert.z = e.vert.z % DRAWDISTANCE;
-    })
-  })
+  // splatShapes.forEach(e=>{
+  //   e.splats.forEach(e=>{
+  //     e.vert.z-=5;
+  //     e.vert.z = e.vert.z % DRAWDISTANCE;
+  //   })
+  // })
   
 
   pruneDead(splodes);
@@ -279,10 +279,27 @@ function updateGame(){
     camera.camY -= Math.sin(camera.pitch)*camVel;
   }
 
+  if(Key.isDown(Key.a)){
+    let camVel = 5
+    camera.camX -= Math.cos(-camera.yaw)*Math.cos(0)*camVel;
+    camera.camZ -= Math.sin(-camera.yaw)*Math.cos(0)*camVel;
+    camera.camY -= Math.sin(0)*camVel;
+  }
+
+  if(Key.isDown(Key.d)){
+    let camVel = 5
+    camera.camX += Math.cos(-camera.yaw)*Math.cos(0)*camVel;
+    camera.camZ += Math.sin(-camera.yaw)*Math.cos(0)*camVel;
+    camera.camY += Math.sin(0)*camVel;
+  }
+
   if(Key.isDown(Key.UP)){ camera.pitch += 0.01; }
   if(Key.isDown(Key.DOWN)){ camera.pitch -= 0.01; }
   if(Key.isDown(Key.LEFT)){ camera.yaw -= 0.01; }
   if(Key.isDown(Key.RIGHT)){ camera.yaw += 0.01; }
+
+  //mouse movement controls camera yaw and pitch.
+  
 
   let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
   debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
@@ -372,7 +389,8 @@ window.addEventListener('focus', function (event) {
 }, false);
 
 window.addEventListener('mousemove', function (event) {
-  if(cursor.isDown){handleInput(event)};
+  camera.pitch += event.movementY * 0.001;
+  camera.yaw += event.movementX * 0.001;
 } , false);
 window.addEventListener('mousedown', function (event) {
   cursor.isDown = true;
@@ -486,7 +504,7 @@ function handleInput(e){
   let worldY = screenY + view.y;
   let worldX = screenX + view.x;
   if(!cursor.isDown){
-    player.move(worldX, worldY);
+    
   }
   else{
     splodes.push(new Splode(worldX, worldY, randInt(5, 10), randInt(0,63)));
