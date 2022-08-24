@@ -175,6 +175,64 @@
       }
     }
 
+    line3d(x1, y1, z1, x2, y2, z2, color) {
+      (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
+
+      var dy = y2 - y1;
+      var dx = x2 - x1;
+      var dz = z2 - z1;
+      var stepx, stepy, stepz;
+      var points = [];
+
+      
+
+      if (dy < 0) {
+        dy = -dy;
+        stepy = -1;
+      } else {
+        stepy = 1;
+      }
+      if (dx < 0) {
+        dx = -dx;
+        stepx = -1;
+      } else {
+        stepx = 1;
+      }
+      dy <<= 1; // dy is now 2*dy
+      dx <<= 1; // dx is now 2*dx
+
+      this.pset(x1, y1, color, z1);
+      if (dx > dy) {
+        var fraction = dy - (dx >> 1); // same as 2*dy - dx
+        while (x1 != x2) {
+          if (fraction >= 0) {
+            y1 += stepy;
+            fraction -= dx; // same as fraction -= 2*dx
+          }
+          x1 += stepx;
+          fraction += dy; // same as fraction -= 2*dy
+          points.push({x: x1, y: y1});
+        }
+      } else {
+        fraction = dx - (dy >> 1);
+        while (y1 != y2) {
+          if (fraction >= 0) {
+            x1 += stepx;
+            fraction -= dy;
+          }
+          y1 += stepy;
+          fraction += dx;
+          points.push({x: x1, y: y1});
+        }
+      }
+      stepz = dz / points.length;
+      for (let i = 0; i < points.length; i++) {
+        this.pset(points[i].x, points[i].y, color, stepz * i + z1);
+      }
+    }
+
+   
+
     tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0, z=0) {
       (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
@@ -994,10 +1052,7 @@
 
   function choice(values) {
     return values[randInt(0, values.length - 1)];
-  }function lerp(a, b, x){
-     return a + (b -a ) * x;
   }
-
   function playSound(buffer, playbackRate = 1, pan = 0, volume = .5, loop = false) {
 
     var source = window.audioCtx.createBufferSource();
@@ -1289,7 +1344,9 @@
           d:sqrt(x*x+y*y+z*z)
         };
       }else {
-        return {d:-1};
+        return {
+          d:-1
+        };
       }
   }
 
@@ -1301,13 +1358,13 @@
   const shapes = {
       CIRCLE: 0,
       SQUARE: 1,
-      POINT: 2, 
-
+      POINT: 2
   };
 
   const DRAWDISTANCE = 2000;
   const FADEDISTANCE = 1800;
   const FADEDISTANCE2 = 1975;
+  const SCALEFACTOR = 40;
 
   class Splat{
       constructor(x,y,z, opt={
@@ -1339,52 +1396,44 @@
                   color2 = 2; color1 = 1;
               }
 
-              var scale =  40/screenPosition.d;
+              var scale =  SCALEFACTOR/screenPosition.d;
               var screenSize = size * scale;
-              
-              if(shape == shapes.CIRCLE){
-                  r.cursorColor2 = color2;
-                  r.pat = pattern;
-                  
-                  if(screenSize < 1){
-                      r.pset(x,y,color1, screenPosition.d);
-                  }else {
-                      r.fillCircle(x,y,screenSize, color1, screenPosition.d);
-                      r.pat = r.dither[0];
-                      if(this.fill.stroke){
-                          r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+              if(screenSize < 0.25) return;
+
+              r.cursorColor2 = color2;
+              r.pat = pattern;
+              switch(shape){
+                  case shapes.CIRCLE:
+                      
+                      if(screenSize < 1){
+                          r.pset(x,y,color1, screenPosition.d);
+                      }else {
+                          r.fillCircle(x,y,screenSize, color1, screenPosition.d);
+                          r.pat = r.dither[0];
+                          if(this.fill.stroke){
+                              r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+                          }
                       }
-                      //r.circle(x,y, screenSize, 0, screenPosition.d);
-                  }
-                  
-                  r.cursorColor2 = 64;
-                  r.pat = r.dither[0];
-              }else if(shape == shapes.SQUARE){
-                  r.cursorColor2 = color2;
-                  r.pat = pattern;
-                  r.fillRect(
-                      x-screenSize/2,
-                      y-screenSize/2,
-                      screenSize,
-                      screenSize,
-                      color1,
-                      screenPosition.d
-                      );
-                  if(this.fill.stroke){
-                      r.rect(
-                          x-screenSize/2,
-                          y-screenSize/2,
-                          screenSize,
-                          screenSize,
-                          this.fill.stroke,
+                  break;
+                  case shapes.SQUARE:
+                      r.fillRect(
+                          x-screenSize/2,y-screenSize/2,
+                          screenSize, screenSize,
+                          color1,
                           screenPosition.d
                           );
-                  }
-              }else if(shape == shapes.POINT){
-                  
-                  r.pat = pattern;
-                  r.pset(x,y,color1, screenPosition.d);
-                  
+                      if(this.fill.stroke){
+                          r.rect(
+                              x-screenSize/2, y-screenSize/2,
+                              screenSize, screenSize,
+                              this.fill.stroke,
+                              screenPosition.d
+                              );
+                      }
+                  break;
+                  case shapes.POINT:
+                      r.pset(x,y,color1, screenPosition.d);
+                  break;
               }
               r.cursorColor2 = 64;
               r.pat = r.dither[0];
@@ -1396,6 +1445,22 @@
       constructor(x,y,z, splatArray){
           this.location = new Vert(x,y,z);
           this.splats = splatArray;
+      }
+   }
+
+   class Line3d{
+      constructor(x1,y1,z1,x2,y2,z2, color){
+          this.a = new Vert(x1,y1,z1);
+          this.b = new Vert(x2,y2,z2);
+          this.color = color;
+      }
+      draw(camera){
+          let screenPositionA = project3D(this.a.x, this.a.y, this.a.z, camera);
+          let screenPositionB = project3D(this.b.x, this.b.y, this.b.z, camera);
+          if(screenPositionA.d != -1 && screenPositionB.d != -1 && screenPositionA.d < DRAWDISTANCE && screenPositionB.d < DRAWDISTANCE){
+              
+              r.line3d(screenPositionA.x, screenPositionA.y, screenPositionA.d, screenPositionB.x, screenPositionB.y, screenPositionB.d, this.color);
+          }
       }
    }
 
@@ -1422,9 +1487,8 @@
 
   window.t = 1;
   splodes = [];
-  fans = [];
-  splats = [];
-  window.splatShapes = [];
+  splatShapes = [];
+  window.lines = [];
   window.player = new Player(100, 100);
   screenCenterX = w/2; screenCenterY = h/2;
   gamestate=0;
@@ -1566,7 +1630,14 @@
     }
     splatShapes.push(new shape(0,0,0, chunks));
 
-
+    for(let i = 0; i < 50; i++){
+      let x = randFloat(-60, 60);
+      let y = randFloat(-60, 60);
+      let color = choice([3,4,5]);
+      for(let z = -2000; z < DRAWDISTANCE; z+=10){
+       lines.push(new Line3d(x, y, z, x, y, z-10, color));
+      }
+    }
 
     //camX, camY, camZ, cx, cy, and scale.
     camera = {
@@ -1625,7 +1696,7 @@
     t+=1;
     // splatShapes.forEach(e=>{
     //   e.splats.forEach(e=>{
-    //     e.vert.z-=5;
+    //     e.vert.z-=1;
     //     e.vert.z = e.vert.z % DRAWDISTANCE;
     //   })
     // })
@@ -1635,12 +1706,7 @@
 
     //player.update();
 
-    viewTarget.x = player.x - screenCenterX;
-    viewTarget.y = player.y - screenCenterY;
-    //view.x = lerp(view.x, viewTarget.x, 0.1);
-    view.y = lerp(view.y, viewTarget.y, 0.1);
-    //camera.camX = view.x / 5;
-    //camera.camY = view.y / 5;
+    
     
     if(Key.justReleased(Key.r)){
       resetGame();
@@ -1652,14 +1718,14 @@
   		playerVY+=Math.sin(pitch)*accel;
       */
     if(Key.isDown(Key.w)){
-      let camVel = 5;
+      let camVel = 1;
       camera.camX += Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
       camera.camZ += Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
       camera.camY += Math.sin(camera.pitch)*camVel;
     }
     
     if(Key.isDown(Key.s)){
-      let camVel = 5;
+      let camVel = 1;
 
       camera.camX -= Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
       camera.camZ -= Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
@@ -1667,14 +1733,14 @@
     }
 
     if(Key.isDown(Key.a)){
-      let camVel = 5;
+      let camVel = 1;
       camera.camX -= Math.cos(-camera.yaw)*Math.cos(0)*camVel;
       camera.camZ -= Math.sin(-camera.yaw)*Math.cos(0)*camVel;
       camera.camY -= Math.sin(0)*camVel;
     }
 
     if(Key.isDown(Key.d)){
-      let camVel = 5;
+      let camVel = 1;
       camera.camX += Math.cos(-camera.yaw)*Math.cos(0)*camVel;
       camera.camZ += Math.sin(-camera.yaw)*Math.cos(0)*camVel;
       camera.camY += Math.sin(0)*camVel;
@@ -1700,6 +1766,7 @@
     splatShapes.forEach(e=>{
       e.splats.forEach(e=>e.draw(camera));
     });
+    lines.forEach(e=>e.draw(camera));
     r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
     r.render();
   }

@@ -1,5 +1,7 @@
 //global r = RetroBuffer
 
+import { listenerCount } from "npm";
+
 
 export function translateShape(x, y, z, shape){
     
@@ -93,7 +95,9 @@ export function project3D(x, y, z, vars){
         d:sqrt(x*x+y*y+z*z)
       };
     }else{
-      return {d:-1};
+      return {
+        d:-1
+      };
     }
 }
 
@@ -105,13 +109,13 @@ export function Vert(x,y,z){
 export const shapes = {
     CIRCLE: 0,
     SQUARE: 1,
-    POINT: 2, 
-
+    POINT: 2
 }
 
 export const DRAWDISTANCE = 2000;
 export const FADEDISTANCE = 1800;
 export const FADEDISTANCE2 = 1975;
+export const SCALEFACTOR = 40;
 
 export class Splat{
     constructor(x,y,z, opt={
@@ -143,52 +147,44 @@ export class Splat{
                 color2 = 2; color1 = 1;
             }
 
-            var scale =  40/screenPosition.d;
+            var scale =  SCALEFACTOR/screenPosition.d;
             var screenSize = size * scale;
-            
-            if(shape == shapes.CIRCLE){
-                r.cursorColor2 = color2;
-                r.pat = pattern
-                
-                if(screenSize < 1){
-                    r.pset(x,y,color1, screenPosition.d);
-                }else{
-                    r.fillCircle(x,y,screenSize, color1, screenPosition.d);
-                    r.pat = r.dither[0];
-                    if(this.fill.stroke){
-                        r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+            if(screenSize < 0.25) return;
+
+            r.cursorColor2 = color2;
+            r.pat = pattern
+            switch(shape){
+                case shapes.CIRCLE:
+                    
+                    if(screenSize < 1){
+                        r.pset(x,y,color1, screenPosition.d);
+                    }else{
+                        r.fillCircle(x,y,screenSize, color1, screenPosition.d);
+                        r.pat = r.dither[0];
+                        if(this.fill.stroke){
+                            r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+                        }
                     }
-                    //r.circle(x,y, screenSize, 0, screenPosition.d);
-                }
-                
-                r.cursorColor2 = 64;
-                r.pat = r.dither[0];
-            }else if(shape == shapes.SQUARE){
-                r.cursorColor2 = color2;
-                r.pat = pattern
-                r.fillRect(
-                    x-screenSize/2,
-                    y-screenSize/2,
-                    screenSize,
-                    screenSize,
-                    color1,
-                    screenPosition.d
-                    );
-                if(this.fill.stroke){
-                    r.rect(
-                        x-screenSize/2,
-                        y-screenSize/2,
-                        screenSize,
-                        screenSize,
-                        this.fill.stroke,
+                break;
+                case shapes.SQUARE:
+                    r.fillRect(
+                        x-screenSize/2,y-screenSize/2,
+                        screenSize, screenSize,
+                        color1,
                         screenPosition.d
                         );
-                }
-            }else if(shape == shapes.POINT){
-                
-                r.pat = pattern
-                r.pset(x,y,color1, screenPosition.d);
-                
+                    if(this.fill.stroke){
+                        r.rect(
+                            x-screenSize/2, y-screenSize/2,
+                            screenSize, screenSize,
+                            this.fill.stroke,
+                            screenPosition.d
+                            );
+                    }
+                break;
+                case shapes.POINT:
+                    r.pset(x,y,color1, screenPosition.d);
+                break;
             }
             r.cursorColor2 = 64;
             r.pat = r.dither[0];
@@ -230,5 +226,21 @@ export function randomSpherePoint(x0,y0,z0,radius){
     constructor(x,y,z, splatArray){
         this.location = new Vert(x,y,z);
         this.splats = splatArray;
+    }
+ }
+
+ export class Line3d{
+    constructor(x1,y1,z1,x2,y2,z2, color){
+        this.a = new Vert(x1,y1,z1);
+        this.b = new Vert(x2,y2,z2);
+        this.color = color;
+    }
+    draw(camera){
+        let screenPositionA = project3D(this.a.x, this.a.y, this.a.z, camera);
+        let screenPositionB = project3D(this.b.x, this.b.y, this.b.z, camera);
+        if(screenPositionA.d != -1 && screenPositionB.d != -1 && screenPositionA.d < DRAWDISTANCE && screenPositionB.d < DRAWDISTANCE){
+            
+            r.line3d(screenPositionA.x, screenPositionA.y, screenPositionA.d, screenPositionB.x, screenPositionB.y, screenPositionB.d, this.color);
+        }
     }
  }

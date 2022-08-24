@@ -10,7 +10,7 @@ import tada from './sounds/tada.js';
 import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
-import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE } from './core/threedee.js';
+import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE, Line3d } from './core/threedee.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -35,9 +35,8 @@ fpsInterval = 1000 / framesPerSecond;
 
 window.t = 1;
 splodes = [];
-fans = [];
-splats = [];
-window.splatShapes = [];
+splatShapes = [];
+window.lines = [];
 window.player = new Player(100, 100);
 screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
@@ -179,7 +178,16 @@ function initGameData(){
   }
   splatShapes.push(new shape(0,0,0, chunks));
 
-
+  for(let i = 0; i < 50; i++){
+    let x = randFloat(-60, 60);
+    let y = randFloat(-60, 60);
+    let z1 = 0;
+    let z2 = 100;
+    let color = choice([3,4,5])
+    for(let z = -2000; z < DRAWDISTANCE; z+=10){
+     lines.push(new Line3d(x, y, z, x, y, z-10, color));
+    }
+  }
 
   //camX, camY, camZ, cx, cy, and scale.
   camera = {
@@ -238,7 +246,7 @@ function updateGame(){
   t+=1;
   // splatShapes.forEach(e=>{
   //   e.splats.forEach(e=>{
-  //     e.vert.z-=5;
+  //     e.vert.z-=1;
   //     e.vert.z = e.vert.z % DRAWDISTANCE;
   //   })
   // })
@@ -248,12 +256,7 @@ function updateGame(){
 
   //player.update();
 
-  viewTarget.x = player.x - screenCenterX;
-  viewTarget.y = player.y - screenCenterY;
-  //view.x = lerp(view.x, viewTarget.x, 0.1);
-  view.y = lerp(view.y, viewTarget.y, 0.1);
-  //camera.camX = view.x / 5;
-  //camera.camY = view.y / 5;
+  
   
   if(Key.justReleased(Key.r)){
     resetGame();
@@ -265,14 +268,14 @@ function updateGame(){
 		playerVY+=Math.sin(pitch)*accel;
     */
   if(Key.isDown(Key.w)){
-    let camVel = 5
+    let camVel = 1
     camera.camX += Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camZ += Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camY += Math.sin(camera.pitch)*camVel;
   }
   
   if(Key.isDown(Key.s)){
-    let camVel = 5
+    let camVel = 1
 
     camera.camX -= Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camZ -= Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
@@ -280,14 +283,14 @@ function updateGame(){
   }
 
   if(Key.isDown(Key.a)){
-    let camVel = 5
+    let camVel = 1
     camera.camX -= Math.cos(-camera.yaw)*Math.cos(0)*camVel;
     camera.camZ -= Math.sin(-camera.yaw)*Math.cos(0)*camVel;
     camera.camY -= Math.sin(0)*camVel;
   }
 
   if(Key.isDown(Key.d)){
-    let camVel = 5
+    let camVel = 1
     camera.camX += Math.cos(-camera.yaw)*Math.cos(0)*camVel;
     camera.camZ += Math.sin(-camera.yaw)*Math.cos(0)*camVel;
     camera.camY += Math.sin(0)*camVel;
@@ -313,6 +316,7 @@ function drawGame(){
   splatShapes.forEach(e=>{
     e.splats.forEach(e=>e.draw(camera));
   })
+  lines.forEach(e=>e.draw(camera));
   r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
   r.render();
 }

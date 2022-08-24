@@ -4,6 +4,8 @@ a d strafes left-right relative to look direction
 q e up/down 
 mousemove changes look at direction
 
+refactor drawdistance into RetroBuffer pset
+
 splat class
     vertex
     colors + dither

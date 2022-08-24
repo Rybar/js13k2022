@@ -173,6 +173,64 @@ class RetroBuffer {
     }
   }
 
+  line3d(x1, y1, z1, x2, y2, z2, color) {
+    (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
+
+    var dy = y2 - y1;
+    var dx = x2 - x1;
+    var dz = z2 - z1;
+    var stepx, stepy, stepz;
+    var points = [];
+
+    
+
+    if (dy < 0) {
+      dy = -dy;
+      stepy = -1;
+    } else {
+      stepy = 1;
+    }
+    if (dx < 0) {
+      dx = -dx;
+      stepx = -1;
+    } else {
+      stepx = 1;
+    }
+    dy <<= 1; // dy is now 2*dy
+    dx <<= 1; // dx is now 2*dx
+
+    this.pset(x1, y1, color, z1);
+    if (dx > dy) {
+      var fraction = dy - (dx >> 1); // same as 2*dy - dx
+      while (x1 != x2) {
+        if (fraction >= 0) {
+          y1 += stepy;
+          fraction -= dx; // same as fraction -= 2*dx
+        }
+        x1 += stepx;
+        fraction += dy; // same as fraction -= 2*dy
+        points.push({x: x1, y: y1});
+      }
+    } else {
+      fraction = dx - (dy >> 1);
+      while (y1 != y2) {
+        if (fraction >= 0) {
+          x1 += stepx;
+          fraction -= dy;
+        }
+        y1 += stepy;
+        fraction += dx;
+        points.push({x: x1, y: y1});
+      }
+    }
+    stepz = dz / points.length;
+    for (let i = 0; i < points.length; i++) {
+      this.pset(points[i].x, points[i].y, color, stepz * i + z1);
+    }
+  }
+
+ 
+
   tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
