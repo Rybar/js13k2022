@@ -100,7 +100,7 @@ class RetroBuffer {
 
   clr(color, page) {
     this.ram.fill(color, page, page + this.PAGESIZE);
-    this.zbuf.fill(99999999, 0, this.WIDTH * this.HEIGHT);
+    this.zbuf.fill(9999999999, 0, this.WIDTH * this.HEIGHT);
   }
 
   pset(x, y, color, z = 0) {
@@ -452,7 +452,7 @@ class RetroBuffer {
   }
 
   //from https://www-users.mat.uni.torun.pl//~wrona/3d_tutor/tri_fillers.html
-  fillTriangle(p1, p2, p3, color) {
+  fillTriangle(p1, p2, p3, color, z) {
     //sort vertices by y, top first
 
     let P = [
@@ -477,18 +477,18 @@ class RetroBuffer {
     Object.assign(E, A);
     if (dx1 > dx2) {
       for (; S.y <= B.y; S.y++, E.y++, S.x += dx2, E.x += dx1) {
-        this.line(S.x, S.y, E.x, S.y, color);
+        this.line(S.x, S.y, E.x, S.y, color, z);
       }
       E = B;
       for (; S.y <= C.y; S.y++, E.y++, S.x += dx2, E.x += dx3)
-        this.line(S.x, S.y, E.x, S.y, color);
+        this.line(S.x, S.y, E.x, S.y, color, z);
     } else {
       for (; S.y <= B.y; S.y++, E.y++, S.x += dx1, E.x += dx2) {
-        this.line(S.x, S.y, E.x, S.y, color);
+        this.line(S.x, S.y, E.x, S.y, color, z);
       }
       S = B;
       for (; S.y <= C.y; S.y++, E.y++, S.x += dx3, E.x += dx2) {
-        this.line(S.x, S.y, E.x, S.y, color);
+        this.line(S.x, S.y, E.x, S.y, color, z);
       }
     }
   }

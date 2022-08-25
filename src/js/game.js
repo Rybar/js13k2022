@@ -1,7 +1,6 @@
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './musicplayer.js';
 import Player from './entities/player.js';
-import Fan from './entities/fan.js';
 
 //sound assets
 import cellComplete from './sounds/cellComplete.js';
@@ -10,7 +9,7 @@ import tada from './sounds/tada.js';
 import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
-import { matrix_rotate, project3D, Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE, Line3d } from './core/threedee.js';
+import { Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE, Line3d } from './core/threedee.js';
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -18,9 +17,9 @@ if(innerWidth < 800){
   h = innerHeight/2;
 }
 else {
-  screenFactor = 3;
-  w = Math.floor(innerWidth/3);
-  h = Math.floor(innerHeight/3);
+  screenFactor = 4;
+  w = Math.floor(innerWidth/4);
+  h = Math.floor(innerHeight/4);
 }
 
 view = { x: 0, y: 0, z: 0 };
@@ -38,7 +37,6 @@ splodes = [];
 splatShapes = [];
 window.lines = [];
 window.player = new Player(100, 100);
-screenCenterX = w/2; screenCenterY = h/2;
 gamestate=0;
 paused = false;
 started=false;
@@ -51,6 +49,14 @@ debugText = "";
 const PRELOAD = 0;
 const GAME = 1;
 const TITLESCREEN = 2;
+const WELL = 3;
+const PURGATORY = 4;
+const HELL = 5;
+const HEAVEN = 6;
+
+const SCREENCENTERX = w/2; 
+const SCREENCENTERY = h/2;
+const FALLSPEED = 7;
 
 const styleSheet = document.createElement("style")
 styleSheet.type = "text/css"
@@ -90,115 +96,20 @@ function gameInit(){
 }
 
 function initGameData(){
-  let stars = [];
-  let locations = [
-    {x:0, y:0, rad: 100, colors: [16,17,19], quantity: 2000},
-  ]
-  for(let i=0; i<10; i++){
-    let rad = randFloat(0, Math.PI*2);
-    let distance = 200 + randFloat(0, 300);
-    locations.push({
-      x: Math.cos(rad)*distance,
-      y: Math.sin(rad)*distance,
-      rad: randInt(100,500),
-      colors: [30,31,32],
-      quantity: randInt(100,200),
-    })
-  }
-  locations.forEach(location=>{
-    stars = [];
-    for(let i = 0; i < location.quantity; i++){
-      let radius = location.rad;
-      let color1 = choice(location.colors);
-      let color2 = choice(location.colors);
-      //random points in a ring on the xy plane
-      let rad = randFloat(0, Math.PI*2);
-      let x = location.x + Math.sin(rad) * radius;
-      let y = location.y + Math.cos(rad) * radius;
-      let z = -DRAWDISTANCE/location.quantity * i;
-      let point = new Vert(x, y, z);
-      let splat = new Splat(
-        point.x, point.y, point.z,
-      {
-        fill: { color1: color1, color2: color2, pattern: r.dither[8] },
-        shape: shapes.CIRCLE,
-        size: randFloat(7,15),
-        
-      });
-      stars.push( splat )
-    }
-    splatShapes.push(new shape(0,0,0, stars));
-  })
-
-  let chunks = [];
-  for(let i = 0; i < 25; i++){
-    let rad = randFloat(0, Math.PI*2);
-    let radius = 50;
-    let x = Math.sin(rad) * radius;
-    let y = Math.cos(rad) * radius;
-    let z = -DRAWDISTANCE/25 * i;
-    let point = new Vert(x, y, z);
-    let splat = new Splat(
-      point.x, point.y, point.z,
-    {
-      fill: { color1: 0, color2: 1, stroke: 19, pattern: r.dither[randInt(0,8)] },
-      shape: shapes.CIRCLE,
-      size: randInt(30, 70),
-    });
-    if(randFloat(0,1) > 0.9){
-      splat.size = 200;
-      splat.vert.x = Math.sin(rad) * 150;
-      splat.vert.y = Math.cos(rad) * 150;
-      splat.fill.stroke = 16;
-    }
-    chunks.push( splat )
-  }
-  splatShapes.push(new shape(0,0,0, chunks));
-
-  chunks = [];
-  for(let i = 0; i < 900; i++){
-    let rad = randFloat(0, Math.PI*2);
-    let radius = 50;
-    let x = Math.sin(rad) * radius;
-    let y = Math.cos(rad) * radius;
-    let z = -DRAWDISTANCE/4 * randInt(0,3) + Math.random() * 20;
-    let point = new Vert(x, y, z);
-    let splat = new Splat(
-      point.x, point.y, point.z,
-    {
-      fill: { color1: choice([0,41,42]), color2: choice([0,41,42]), stroke: 40, pattern: r.dither[randInt(0,8)] },
-      shape: shapes.SQUARE,
-      size: randInt(5, 15),
-    });
-    if(randFloat(0,1) > 0.98){
-      splat.size = randInt(80, 120);
-      
-    }
-    chunks.push( splat )
-  }
-  splatShapes.push(new shape(0,0,0, chunks));
-
-  for(let i = 0; i < 50; i++){
-    let x = randFloat(-60, 60);
-    let y = randFloat(-60, 60);
-    let z1 = 0;
-    let z2 = 100;
-    let color = choice([3,4,5])
-    for(let z = -2000; z < DRAWDISTANCE; z+=10){
-     lines.push(new Line3d(x, y, z, x, y, z-10, color));
-    }
-  }
-
-  //camX, camY, camZ, cx, cy, and scale.
+  prepareWellData();
+  preparePurgatoryData();
+  prepareHellData();
+  prepareHeavenData();
+    //camX, camY, camZ, cx, cy, and scale.
   camera = {
     camX: 0,
     camY: 0,
-    camZ: -2000,
+    camZ: -10,
     pitch: 0,
     yaw: 0,
-    cx: screenCenterX,
-    cy: screenCenterY,
-    scale: 200
+    cx: SCREENCENTERX,
+    cy: SCREENCENTERY,
+    scale: 300
   }
 }
 
@@ -242,14 +153,17 @@ function initAudio(){
   })
 }
 
-function updateGame(){
+function update_well(){
   t+=1;
-  // splatShapes.forEach(e=>{
-  //   e.splats.forEach(e=>{
-  //     e.vert.z-=1;
-  //     e.vert.z = e.vert.z % DRAWDISTANCE;
-  //   })
-  // })
+  splatShapes.forEach(e=>{
+    e.splats.forEach(e=>{
+      e.vert.z-=FALLSPEED;
+      if(e.vert.z < -10){
+        e.vert.z = DRAWDISTANCE;
+      }
+    })
+    //camera.camZ += Math.sin(t/100)/10;
+  })
   
 
   pruneDead(splodes);
@@ -262,11 +176,6 @@ function updateGame(){
     resetGame();
   }
 
-  /*
-  playerVX+=Math.sin(yaw)*Math.cos(pitch)*accel;
-		playerVZ+=Math.cos(yaw)*Math.cos(pitch)*accel;
-		playerVY+=Math.sin(pitch)*accel;
-    */
   if(Key.isDown(Key.w)){
     let camVel = 1
     camera.camX += Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
@@ -309,9 +218,13 @@ function updateGame(){
 
 }
 
-function drawGame(){
-  r.clr(1, r.SCREEN)
-
+function draw_well(){
+  r.clr(0, r.SCREEN)
+  r.pat=r.dither[14];
+  r.cursorColor2 = 0;
+  r.fillRect(0,0,w,h, 1, 9999);
+  r.cursorColor2 = 64;
+  r.pat = r.dither[0];
   //player.draw();
   splatShapes.forEach(e=>{
     e.splats.forEach(e=>e.draw(camera));
@@ -325,7 +238,7 @@ function resetGame(){
   window.t = 1;
   splodes = [];
   initGameData();
-  gamestate = GAME;
+  gamestate = WELL;
 }
 
 function preload(){
@@ -342,108 +255,24 @@ function preload(){
     audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
   }
 
-  // if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
-  //     //playSound(sounds.tada);
-  //     gamestate = GAME
-    
-  // }; 
   if(cursor.isDown && soundsReady == totalSounds){
-    gamestate = GAME;
+    gamestate = WELL;
+    cursor.isDown = false;
   }
 
   r.render();
 }
 
 function titlescreen(){
-  if(Key.justReleased(Key.UP) || Key.justReleased(Key.w) || Key.justReleased(Key.z)){
-    gamestate = 1;
-  }
-
-  r.clr(14, r.SCREEN)
-  let cols = Math.ceil(w/32), rows = Math.ceil(h/32);
-  let col = 32, row = 32;
-  for(let i = 0; i < cols; i++){
-    r.line(i * col, 0, i * col, r.HEIGHT, 2);
-  }
-  for(let i = 0; i < rows; i++){
-    r.line(0, i * row, r.WIDTH, i * row, 2);
-  }
-  let text = "TITLE SCREEN"
+  r.clr(0, r.SCREEN)
+  let text = "THE WELL"
   r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
   text = "CLICK TO BEGIN";
   r.text([text, w/2-2, 120, 1, 3, 'center', 'top', 1, 22]);
-
-
   r.render();
 }
 
 
-//initialize  event listeners--------------------------
-window.addEventListener('keyup', function (event) {
-  Key.onKeyup(event);
-}, false);
-window.addEventListener('keydown', function (event) {
-  Key.onKeydown(event);
-}, false);
-window.addEventListener('blur', function (event) {
-  paused = true;
-}, false);
-window.addEventListener('focus', function (event) {
-  paused = false;
-}, false);
-
-window.addEventListener('mousemove', function (event) {
-  camera.pitch += event.movementY * 0.001;
-  camera.yaw += event.movementX * 0.001;
-} , false);
-window.addEventListener('mousedown', function (event) {
-  cursor.isDown = true;
-  handleInput(event);
-} , false);
-window.addEventListener('mouseup', function (event) {
-  cursor.isDown = false;
-  handleInput(event);
-} , false);
-
-window.addEventListener('touchstart', function (event) {
-  
-  if(gamestate == PRELOAD){
-    onWindowInteraction(event); 
-  } else {
-    cursor.isDown = true;
-    handleInput(event);
-  }
-}, false);
-
-window.addEventListener('touchend', function (event) {
-  cursor.isDown = false;
-} , false);
-
-onWindowInteraction = function(e){
-  x=e.pageX;y=e.pageY;
-  paused = false;
-  switch(gamestate){
-      case PRELOAD: 
-        if(soundsReady == 0 && !started){
-          initGameData();
-          initAudio();
-          started = true;
-        }
-      break;
-
-      case TITLESCREEN: 
-      break;
-
-      case GAME:
-        
-      break;
-
-      case GAMEOVER: 
-  }
-}
-
-onclick=e=>{ onWindowInteraction(e); }
-ontouchstart=e=>{ onWindowInteraction(e);}
 
 function pruneDead(entitiesArray){
   for(let i = 0; i < entitiesArray.length; i++){
@@ -469,9 +298,9 @@ function gameLoop(){
       case PRELOAD: 
         preload();
         break;
-      case GAME: 
-        updateGame();
-        drawGame();
+      case WELL: 
+        update_well();
+        draw_well();
         break;
       case TITLESCREEN: 
         titlescreen();
@@ -502,15 +331,133 @@ function mainLoop(){
   Key.update();
 }
 
-function handleInput(e){
-  let screenX = Math.floor(e.pageX / screenFactor);
-  let screenY = Math.floor(e.pageY / screenFactor);
-  let worldY = screenY + view.y;
-  let worldX = screenX + view.x;
-  if(!cursor.isDown){
-    
+function prepareWellData(){
+  let stoneCount = 24;
+  let ringCount = DRAWDISTANCE/80;
+
+  for(let j = 0; j < ringCount; j++){
+    let wellStones = [];
+    for(let i = 0; i < stoneCount; i++){
+      let radius = 42;
+      let tau = Math.PI*2;
+      let increment = tau/stoneCount;
+      let stoneColor = choice([1,31,32])
+      //let positionOffset = {x:}
+      let stone = new Splat(
+        Math.sin( increment * i )*radius,
+        Math.cos( increment * i )*radius,
+        i %2 == 0 ? 0 : 40,
+        {
+        size: 7.6,
+        shape: shapes.TRIANGLES,
+        fill:{
+          color1: 0, color2:  choice[0,1], pattern: r.dither[randInt(0,8)]
+        },
+        angle: (Math.PI*2* -(i/stoneCount)),
+        triangles: [
+          { points: [ {x: -1, y: -1, z: 0}, {x: 1, y: -1, z: 0}, {x: -1.6, y: 1, z: 0}], color: stoneColor },
+          { points: [ {x: -1.6, y: 1, z: 0}, {x: 1, y: -1, z: 0}, {x: 1.6, y: 1, z: 0}], color: stoneColor },
+        ]
+      });
+      wellStones.push(stone);
+    }
+    splatShapes.push(new shape(0,0,80*j,wellStones));
   }
-  else{
-    splodes.push(new Splode(worldX, worldY, randInt(5, 10), randInt(0,63)));
+  
+
+  let chunks = [];
+  for(let i = 0; i < 1000; i++){
+    let rad = randFloat(0, Math.PI*2);
+    let radius = 44;
+    let x = Math.sin(rad) * radius;
+    let y = Math.cos(rad) * radius;
+    let z = DRAWDISTANCE/60 * randInt(0,60)
+     + randInt(0,20);
+    let point = new Vert(x, y, z);
+    let splat = new Splat(
+      point.x, point.y, point.z,
+    {
+      fill: { color1: choice([1,31]), color2: choice([1,31]), pattern: r.dither[choice([7,8])] },
+      shape: shapes.CIRCLE,
+      size: randInt(15,30),
+    });
+    
+    chunks.push( splat )
+  }
+  splatShapes.push(new shape(0,0,0, chunks));
+
+}
+
+function prepareHellData(){
+
+}
+
+function preparePurgatoryData(){
+
+}
+
+function prepareHeavenData(){
+
+}
+
+//initialize  event listeners--------------------------
+window.addEventListener('keyup', function (event) {
+  Key.onKeyup(event);
+}, false);
+window.addEventListener('keydown', function (event) {
+  Key.onKeydown(event);
+}, false);
+window.addEventListener('blur', function (event) {
+  paused = true;
+}, false);
+window.addEventListener('focus', function (event) {
+  paused = false;
+}, false);
+
+window.addEventListener('mousemove', function (event) {
+} , false);
+window.addEventListener('mousedown', function (event) {
+  cursor.isDown = true;
+} , false);
+window.addEventListener('mouseup', function (event) {
+  cursor.isDown = false;
+} , false);
+
+window.addEventListener('touchstart', function (event) {
+  if(gamestate == PRELOAD){
+    onWindowInteraction(event); 
+  } else {
+    cursor.isDown = true;
+  }
+}, false);
+
+window.addEventListener('touchend', function (event) {
+  cursor.isDown = false;
+} , false);
+
+onWindowInteraction = function(e){
+  x=e.pageX;y=e.pageY;
+  paused = false;
+  switch(gamestate){
+      case PRELOAD: 
+        if(soundsReady == 0 && !started){
+          initGameData();
+          initAudio();
+          started = true
+
+        }
+      break;
+
+      case TITLESCREEN:
+      gamestate = WELL;
+      break;
+
+      case WELL:
+        
+      break;
+
+      case GAMEOVER: 
   }
 }
+onclick=e=>{ onWindowInteraction(e); }
+ontouchstart=e=>{ onWindowInteraction(e);}
