@@ -56,6 +56,7 @@ export const Key = {
   RIGHT: 39,
   DOWN: 40,
   SPACE: 32,
+  ZERO: 48,
   ONE: 49,
   TWO: 50,
   THREE: 51,
@@ -109,6 +110,26 @@ export function clone(target) {
   }
 };
 
+export const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 
+export function scaleNumber (number, inMin, inMax, outMin, outMax) {
+  return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
+
+export function isPointInsideSphere(point, sphere) {
+  // we are using multiplications because is faster than calling Math.pow
+  const distance = Math.sqrt((point.x - sphere.x) * (point.x - sphere.x) +
+                           (point.y - sphere.y) * (point.y - sphere.y) +
+                           (point.z - sphere.z) * (point.z - sphere.z));
+  return distance < sphere.radius;
+}
+
+function intersect(sphere, other) {
+  // we are using multiplications because it's faster than calling Math.pow
+  const distance = Math.sqrt((sphere.x - other.x) * (sphere.x - other.x) +
+                           (sphere.y - other.y) * (sphere.y - other.y) +
+                           (sphere.z - other.z) * (sphere.z - other.z));
+  return distance < (sphere.radius + other.radius);
+}
 
 

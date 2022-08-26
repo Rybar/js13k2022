@@ -109,9 +109,10 @@ class RetroBuffer {
     if(this.zbuf[y * this.WIDTH + x] < z) return;
     x = x | 0;
     y = y | 0;
-    color = this.stencil
-      ? this.pget(x, y, this.stencilSource) + this.stencilOffset
-      : (color | 0) % 64;
+    // color = this.stencil
+    //   ? this.pget(x, y, this.stencilSource) + this.stencilOffset
+    //   : (color | 0) % 64;
+      
     let px = (y % 4) * 4 + (x % 4);
     let mask = this.pat & Math.pow(2, px)
     let pcolor = mask ? color : this.cursorColor2;
@@ -181,9 +182,6 @@ class RetroBuffer {
     var dz = z2 - z1;
     var stepx, stepy, stepz;
     var points = [];
-
-    
-
     if (dy < 0) {
       dy = -dy;
       stepy = -1;
@@ -280,7 +278,7 @@ class RetroBuffer {
       y = 0,
       err = 2 - 2 * r;
     /* II. Quadrant */
-    do {
+    while(x < 0) {
       this.pset(xm - x, ym + y, color, z);
       /*   I. Quadrant */
       this.pset(xm - y, ym - x, color, z);
@@ -294,7 +292,7 @@ class RetroBuffer {
       /* e_xy+e_y < 0 */
       if (r > x || err > y) err += ++x * 2 + 1;
       /* e_xy+e_x > 0 or no 2nd y-step */
-    } while (x < 0);
+    }
   }
 
   fillCircle(xm, ym, r, color, z=0) {
@@ -308,14 +306,13 @@ class RetroBuffer {
     var x = -r,
       y = 0,
       err = 2 - 2 * r;
-    /* II. Quadrant */
-    do {
+    while(x < 0) {
       this.line(xm - x, ym - y, xm + x, ym - y, color, z);
       this.line(xm - x, ym + y, xm + x, ym + y, color, z);
       r = err;
       if (r <= y) err += ++y * 2 + 1;
       if (r > x || err > y) err += ++x * 2 + 1;
-    } while (x < 0);
+    }
   }
 
   tfillCircle(xm, ym, r, colorOffset = 0, z=0) {
@@ -509,20 +506,22 @@ class RetroBuffer {
     let data = new Uint32Array(imageData.data.buffer);
 
     //compare buffer to palette (loop)
-    for (var i = 0; i < data.length; i++) {
+    let i = 0; len = data.length;
+    while(i < len) {
       ram[address + i] = colors.indexOf(data[i]);
+      i++;
     }
   }
 
   render() {
-    var i = this.PAGESIZE; // display is first page of ram
-
-    while (i--) {
+    let i = 0, len = this.PAGESIZE;
+    while (i < len) {
       /*
       data is 32bit view of final screen buffer
       for each pixel on screen, we look up it's color and assign it
       */
-      if (i > 0) this.data[i] = this.colors[this.pal[this.ram[i]]];
+      this.data[i] = this.colors[this.pal[this.ram[i]]];
+      i++;
     }
 
     this.imageData.data.set(this.buf8);

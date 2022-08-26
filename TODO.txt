@@ -2,9 +2,9 @@
 
 a d strafes left-right relative to look direction
 q e up/down 
-mousemove changes look at direction
 
-refactor drawdistance into RetroBuffer pset
+refactor drawdistance into RetroBuffer pset  --depth based color  (fog)
+
 
 splat class
     vertex
@@ -17,16 +17,11 @@ splat class
         rect
         sprite with rotation
         
-
 splat rendering
     scaled sprite
-    triangle
-    filled triangle
-    depth based color
+    triangles
+    filled triangles
 
-splat mesh class
-    set of splats 
-    transform
 
 scale and rotation of shapes
 

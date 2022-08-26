@@ -1,3 +1,7 @@
+//All 3D projection code is based on the following tutorial by my friend, Scott McGann:
+//http://https://cantelope.org/3D/
+import { inView } from "./utils";
+
 //global r = RetroBuffer
 export function translateShape(x, y, z, shape){
     
@@ -136,7 +140,7 @@ export class Splat{
     }
     draw(camera){
         let screenPosition = project3D(this.vert.x, this.vert.y, this.vert.z, camera);
-        if(screenPosition.d != -1 && screenPosition.d < DRAWDISTANCE){
+        if(screenPosition.d != -1 && screenPosition.d < DRAWDISTANCE && inView(screenPosition, 100)){
             let {x,y} = screenPosition;
             let size = this.size;
             let shape = this.shape;
@@ -192,10 +196,10 @@ export class Splat{
                             let vert = triangle.points[j];
                             vert = matrix_rotate(vert, this.angle, 0, 0);
                             let screenVert = project3D((vert.x*size+location.x), (vert.y*size+location.y), location.z, camera);
-                            //screenVert.x *= scale;
-                            //screenVert.y *= scale;
                             if(screenVert.d != -1 && screenVert.d < DRAWDISTANCE){
-                                screenTriangle.push(screenVert);
+                                if(inView(screenVert, 100)){
+                                    screenTriangle.push(screenVert);
+                                }
                             }
                         }
                         if(screenTriangle.length == 3){
@@ -211,9 +215,6 @@ export class Splat{
                             tri[2],
                             tri.color,
                             screenPosition.d);
-                        if(this.fill.stroke){
-                            r.fillTriangle(x1,y1,x2,y2,x3,y3, this.fill.stroke, screenPosition.d);
-                        }
                     }
                 break;    
             }
@@ -263,7 +264,30 @@ export function randomSpherePoint(x0,y0,z0,radius){
             splat.vert.z += this.location.z;
         })
     }
- }
+    updatePosition(xdelta,ydelta, zdelta){
+        this.location.x += xdelta;
+        this.location.y += ydelta;
+        this.location.z += zdelta;
+        this.splats.forEach(splat => {
+            splat.vert.x += xdelta; 
+            splat.vert.y += ydelta;
+            splat.vert.z += zdelta; 
+        })
+    }
+    rotate(roll, pitch, yaw){
+        this.splats.forEach(splat => {
+            splat.vert.x -= this.location.x;
+            splat.vert.y -= this.location.y;
+            splat.vert.z -= this.location.z;
+            splat.vert = matrix_rotate(splat.vert, roll, pitch, yaw);
+            splat.vert.x += this.location.x;
+            splat.vert.y += this.location.y;
+            splat.vert.z += this.location.z;
+        })
+    }
+}
+
+    
 
  export class Line3d{
     constructor(x1,y1,z1,x2,y2,z2, color){

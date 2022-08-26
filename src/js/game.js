@@ -5,8 +5,12 @@ import Player from './entities/player.js';
 //sound assets
 import cellComplete from './sounds/cellComplete.js';
 import tada from './sounds/tada.js';
+import rocksmash1 from './sounds/rocksmash1.js';
+import wind1 from './sounds/wind1.js';
+import windlooprush from './sounds/windloop-with-rushes.js.js';
 
-import { playSound, Key, lerp, randInt, randFloat, choice } from './core/utils.js';
+
+import { playSound, Key, lerp, randInt, randFloat, choice, scaleNumber } from './core/utils.js';
 import Splode from './splode.js';
 import Map from './entities/map.js';
 import { Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE, Line3d } from './core/threedee.js';
@@ -30,15 +34,13 @@ then = 0; elapsed = 0; now = 0;
 framesPerSecond = 60;
 fpsInterval = 1000 / framesPerSecond;
 
-
-
 window.t = 1;
 splodes = [];
 splatShapes = [];
 window.lines = [];
-window.player = new Player(100, 100);
 gamestate=0;
 paused = false;
+debug = false;
 started=false;
 sounds = {};
 soundsReady = 0;
@@ -96,6 +98,7 @@ function gameInit(){
 }
 
 function initGameData(){
+  window.player = new Player(0,5,20);
   prepareWellData();
   preparePurgatoryData();
   prepareHellData();
@@ -117,7 +120,7 @@ function initAudio(){
   audioCtx = new AudioContext;
   audioMaster = audioCtx.createGain();
   compressor = audioCtx.createDynamicsCompressor();
-    compressor.threshold.setValueAtTime(-60, audioCtx.currentTime);
+    compressor.threshold.setValueAtTime(-50, audioCtx.currentTime);
     compressor.knee.setValueAtTime(40, audioCtx.currentTime); 
     compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
     compressor.attack.setValueAtTime(0, audioCtx.currentTime);
@@ -129,6 +132,8 @@ function initAudio(){
   sndData = [
     {name:'cellComplete', data: cellComplete},
     {name:'tada', data: tada},
+    {name:'rocksmash1', data: rocksmash1},
+    {name:'windrush', data: windlooprush}
 
   ]
   totalSounds = sndData.length;
@@ -154,38 +159,54 @@ function initAudio(){
 }
 
 function update_well(){
-  t+=1;
-  splatShapes.forEach(e=>{
-    e.splats.forEach(e=>{
-      e.vert.z-=FALLSPEED;
-      if(e.vert.z < -10){
-        e.vert.z = DRAWDISTANCE;
+
+
+  if(!debug){
+    t+=1;
+  let i = 0;let shapelen = splatShapes.length;
+  while(i < shapelen){
+    let s = splatShapes[i];
+    let j = 0; let splatlen = s.splats.length;
+    while(j < splatlen){
+      let splat = s.splats[j];
+      splat.vert.z-=FALLSPEED;
+      if(splat.vert.z < -10){
+        splat.vert.z = DRAWDISTANCE;
       }
-    })
-    //camera.camZ += Math.sin(t/100)/10;
-  })
-  
-
-  pruneDead(splodes);
-
-  //player.update();
-
-  
-  
-  if(Key.justReleased(Key.r)){
-    resetGame();
+      j++;
+    }
+    i++;
   }
 
-  if(Key.isDown(Key.w)){
+  let move = 0.05;
+  if(Key.isDown(Key.w) || Key.isDown(Key.z) || Key.isDown(Key.UP)){
+    player.move(0, -move);
+  }
+  if(Key.isDown(Key.s) || Key.isDown(Key.DOWN)){
+    player.move(0, move);
+  }
+  if(Key.isDown(Key.a) || Key.isDown(Key.q) || Key.isDown(Key.LEFT)){
+    player.move(-move, 0);
+  }
+  if(Key.isDown(Key.d) || Key.isDown(Key.RIGHT)){
+    player.move(move, 0);
+  }
+
+  player.update();
+
+} else{
+    let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
+    debugText = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}\n${player.accelleration.x.toFixed(3)}`;
+
+    if(Key.isDown(Key.w)){
     let camVel = 1
     camera.camX += Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camZ += Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camY += Math.sin(camera.pitch)*camVel;
-  }
+   }
   
   if(Key.isDown(Key.s)){
     let camVel = 1
-
     camera.camX -= Math.sin(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camZ -= Math.cos(camera.yaw)*Math.cos(camera.pitch)*camVel;
     camera.camY -= Math.sin(camera.pitch)*camVel;
@@ -210,11 +231,7 @@ function update_well(){
   if(Key.isDown(Key.LEFT)){ camera.yaw -= 0.01; }
   if(Key.isDown(Key.RIGHT)){ camera.yaw += 0.01; }
 
-  //mouse movement controls camera yaw and pitch.
-  
-
-  let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
-  debugtxt = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}`;
+  }//debug
 
 }
 
@@ -225,20 +242,32 @@ function draw_well(){
   r.fillRect(0,0,w,h, 1, 9999);
   r.cursorColor2 = 64;
   r.pat = r.dither[0];
-  //player.draw();
-  splatShapes.forEach(e=>{
-    e.splats.forEach(e=>e.draw(camera));
-  })
-  lines.forEach(e=>e.draw(camera));
-  r.text([debugtxt, 10, 10, 1, 3, 'left', 'top', 1, 22]);
+  player.draw();
+  let i = 0;let shapelen = splatShapes.length;
+  while(i < shapelen){
+    let s = splatShapes[i];
+    let j = 0; let splatlen = s.splats.length;
+    while(j < splatlen){
+      let splat = s.splats[j];
+      splat.draw(camera);
+      j++;
+    }
+    i++;
+  }
+  if(debug){
+    r.text([debugText, 10, 10, 1, 3, 'left', 'top', 1, 22]);
+  }
   r.render();
 }
 
 function resetGame(){
+  gamestate = TITLESCREEN;
   window.t = 1;
   splodes = [];
+  splatShapes = [];
+  player.alive = true;
+  debug = false;
   initGameData();
-  gamestate = WELL;
 }
 
 function preload(){
@@ -255,8 +284,8 @@ function preload(){
     audioTxt = "CLICK TO INITIALIZE\nGENERATION SEQUENCE";
   }
 
-  if(cursor.isDown && soundsReady == totalSounds){
-    gamestate = WELL;
+  if(soundsReady == totalSounds){
+    gamestate = TITLESCREEN;
     cursor.isDown = false;
   }
 
@@ -264,6 +293,7 @@ function preload(){
 }
 
 function titlescreen(){
+  cursor.isDown = false;
   r.clr(0, r.SCREEN)
   let text = "THE WELL"
   r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
@@ -319,15 +349,11 @@ function mainLoop(){
 
   // if enough time has elapsed, draw the next frame
   if (elapsed > fpsInterval) {
-
-      // Get ready for next frame by setting then=now, but also adjust for your
-      // specified fpsInterval not being a multiple of RAF's interval (16.7ms) <--used to be pretty normal
-      //to expect 60fps.  nowadays, it could be 120fps or even 240fps.  So, we need to adjust for that.
       then = now - (elapsed % fpsInterval);
-
-      // Put your drawing code here
       gameLoop();
   }
+  if(Key.justReleased(Key.r)){ resetGame(); }
+  if(Key.justReleased(Key.ZERO)){debug=!debug;}
   Key.update();
 }
 
@@ -450,10 +476,17 @@ onWindowInteraction = function(e){
 
       case TITLESCREEN:
       gamestate = WELL;
+      playSound(sounds.windrush, 1, 0, 0.6, true);
+      setTimeout(function(){
+        playSound(sounds.windrush, 1, 0, 0.6, true);
+      }, 9000);
       break;
 
       case WELL:
-        
+        let pan = scaleNumber(
+          player.position.x, -40, 40, -1, 1
+        )
+        playSound(sounds.rocksmash1, 1, pan, 0.7, false)
       break;
 
       case GAMEOVER: 
