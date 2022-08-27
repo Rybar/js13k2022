@@ -126,6 +126,35 @@ class RetroBuffer {
     y = y | 0;
     return this.ram[page + x + y * this.WIDTH];
   }
+
+  //span draws a horizontal line
+  span(x, y, length, color, z) {
+    x = x | 0;
+    y = y | 0;
+    color = color | 0;
+    for (let i = 0; i < length; i++) {
+      this.pset(x + i, y, color, z);
+    }
+  }
+
+  //span2 takes two points on a horizontal line and draws a line between them
+  span2(x1, y1, x2, y2, color, z) {
+    x1 = x1 | 0;
+    y1 = y1 | 0;
+    x2 = x2 | 0;
+    y2 = y2 | 0;
+    color = color | 0;
+    let length = Math.abs(x2 - x1) + 1;
+    let x = x1 < x2 ? x1 : x2;
+    let y = y1 < y2 ? y1 : y2;
+    for (let i = 0; i < length; i++) {
+      this.pset(x + i, y, color, z);
+    }
+  }
+
+
+
+
   line(x1, y1, x2, y2, color, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
@@ -227,8 +256,6 @@ class RetroBuffer {
     }
   }
 
- 
-
   tline(x1, y1, x2, y2, offsetX = 0, offsetY = 0, colorOffset = 0, z=0) {
     (x1 = x1 | 0), (x2 = x2 | 0), (y1 = y1 | 0), (y2 = y2 | 0);
 
@@ -274,24 +301,12 @@ class RetroBuffer {
     ym = ym | 0;
     r = r | 0;
     color = color | 0;
-    var x = -r,
-      y = 0,
-      err = 2 - 2 * r;
-    /* II. Quadrant */
-    while(x < 0) {
-      this.pset(xm - x, ym + y, color, z);
-      /*   I. Quadrant */
-      this.pset(xm - y, ym - x, color, z);
-      /*  II. Quadrant */
-      this.pset(xm + x, ym - y, color, z);
-      /* III. Quadrant */
-      this.pset(xm + y, ym + x, color, z);
-      /*  IV. Quadrant */
-      r = err;
-      if (r <= y) err += ++y * 2 + 1;
-      /* e_xy+e_y < 0 */
-      if (r > x || err > y) err += ++x * 2 + 1;
-      /* e_xy+e_x > 0 or no 2nd y-step */
+    for(let y=-r; y<=r; y++){
+      for(let x=-r; x<=r; x++){
+        if(x*x+y*y>=r*r-r && x*x+y*y<=r*r+r){
+          this.pset(xm+x, ym+y, color, z);
+        }
+      }
     }
   }
 
@@ -300,19 +315,14 @@ class RetroBuffer {
     ym = ym | 0;
     r = r | 0;
     color = color | 0;
-    if (r < 0) return;
-    xm = xm | 0;
-    (ym = ym | 0), (r = r | 0);
-    var x = -r,
-      y = 0,
-      err = 2 - 2 * r;
-    while(x < 0) {
-      this.line(xm - x, ym - y, xm + x, ym - y, color, z);
-      this.line(xm - x, ym + y, xm + x, ym + y, color, z);
-      r = err;
-      if (r <= y) err += ++y * 2 + 1;
-      if (r > x || err > y) err += ++x * 2 + 1;
+    for(let y=-r; y<=r; y++){
+      for(let x=-r; x<=r; x++){
+        if(x*x+y*y<=r*r){
+          this.pset(xm+x, ym+y, color, z);
+        }
+      }
     }
+      
   }
 
   tfillCircle(xm, ym, r, colorOffset = 0, z=0) {
@@ -352,20 +362,19 @@ class RetroBuffer {
   fillRect(x, y, w, h, color, z=0) {
     let x1 = x | 0,
       y1 = y | 0,
-      x2 = ((x + w) | 0) - 1,
+      boxWidth = w | 0,
       y2 = ((y + h) | 0) - 1;
     color = color;
 
     var i = Math.abs(y2 - y1);
-    this.line(x1, y1, x2, y1, color, z);
+    this.span(x1, y1, boxWidth, color, z);
 
     if (i > 0) {
       while (--i) {
-        this.line(x1, y1 + i, x2, y1 + i, color, z);
+        this.span(x1, y1 + i, boxWidth, color, z);
       }
     }
-
-    this.line(x1, y2, x2, y2, color, z);
+    this.span(x1, y2, boxWidth, color, z);
   }
 
   sspr(
@@ -474,18 +483,18 @@ class RetroBuffer {
     Object.assign(E, A);
     if (dx1 > dx2) {
       for (; S.y <= B.y; S.y++, E.y++, S.x += dx2, E.x += dx1) {
-        this.line(S.x, S.y, E.x, S.y, color, z);
+        this.span2(S.x, S.y, E.x, S.y, color, z);
       }
       E = B;
       for (; S.y <= C.y; S.y++, E.y++, S.x += dx2, E.x += dx3)
-        this.line(S.x, S.y, E.x, S.y, color, z);
+        this.span2(S.x, S.y, E.x, S.y, color, z);
     } else {
       for (; S.y <= B.y; S.y++, E.y++, S.x += dx1, E.x += dx2) {
-        this.line(S.x, S.y, E.x, S.y, color, z);
+        this.span2(S.x, S.y, E.x, S.y, color, z);
       }
       S = B;
       for (; S.y <= C.y; S.y++, E.y++, S.x += dx3, E.x += dx2) {
-        this.line(S.x, S.y, E.x, S.y, color, z);
+        this.span2(S.x, S.y, E.x, S.y, color, z);
       }
     }
   }

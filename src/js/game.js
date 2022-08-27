@@ -192,6 +192,12 @@ function update_well(){
     player.move(move, 0);
   }
 
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', function(event) {
+      player.move(event.gamma * 0.1, event.beta * 0.1);
+    }, false);
+  }
+
   player.update();
 
 } else{
@@ -354,6 +360,7 @@ function mainLoop(){
   }
   if(Key.justReleased(Key.r)){ resetGame(); }
   if(Key.justReleased(Key.ZERO)){debug=!debug;}
+
   Key.update();
 }
 
