@@ -114,7 +114,7 @@ export const shapes = {
     SPRITE: 4,
 }
 
-export const DD = 500;
+export const DD = 2000;
 export const FADEDISTANCE = 1800;
 export const FADEDISTANCE2 = 1975;
 export const SCALEFACTOR = 40;
