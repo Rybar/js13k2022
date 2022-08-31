@@ -1,19 +1,18 @@
-class Splode{
-    constructor(x,y,z, life, color){
+class BloodSplat{
+    constructor(x,y,life){
     this.x = x;
     this.y = y;
-    this.z = z;
     this.lifeMax = life;
     this.life = life;
     this.alive = true;
-    this.color = color;
+    this.color = 3;
 }
 draw(){
-   
+    
     r.pat = r.DTH[15- Math.floor( (this.life/this.lifeMax) * 15)]
     for(let i = Math.floor(this.life/10); i > 0; i--){
-        r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life-i, this.color);
-    }r.circle(this.x-view.x, this.y-view.y, this.lifeMax-this.life, this.color);
+        r.fillCircle(this.x, this.y, this.lifeMax-this.life-i, this.color,0);
+    }r.fillCircle(this.x, this.y, this.lifeMax-this.life, this.color, 0);
     r.pat = r.DTH[0];
 }
 update(){
@@ -28,4 +27,5 @@ update(){
     }
 }
 }
-export default Splode;
+
+export default BloodSplat;

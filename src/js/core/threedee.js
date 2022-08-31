@@ -107,24 +107,24 @@ export function Vert(x,y,z){
     this.z = z;
 }
 export const shapes = {
-    CIRCLE: 0,
-    SQUARE: 1,
-    POINT: 2,
-    TRIANGLES: 3,
+    CIR: 0,
+    SQ: 1,
+    PT: 2,
+    TRI: 3,
     SPRITE: 4,
 }
 
-export const DRAWDISTANCE = 500;
+export const DD = 500;
 export const FADEDISTANCE = 1800;
 export const FADEDISTANCE2 = 1975;
 export const SCALEFACTOR = 40;
 
 export class Splat{
     constructor(x,y,z, opt={
-        fill: {
-            color1: 22,
-            color2: 0,
-            pattern: r.dither[0]
+        F: {
+            C1: 22,
+            C2: 0,
+            pattern: r.DTH[0]
         },
         shape: shapes.point,
         size: 1,
@@ -134,59 +134,59 @@ export class Splat{
         this.vert = new Vert(x,y,z);
         this.size = opt.size; 
         this.shape = opt.shape;
-        this.fill = opt.fill;
+        this.F = opt.F;
         this.triangles = opt.triangles;
         this.angle = opt.angle;
     }
     draw(camera){
         let screenPosition = project3D(this.vert.x, this.vert.y, this.vert.z, camera);
-        if(screenPosition.d != -1 && screenPosition.d < DRAWDISTANCE && inView(screenPosition, 100)){
+        if(screenPosition.d != -1 && screenPosition.d < DD && inView(screenPosition, 100)){
             let {x,y} = screenPosition;
             let size = this.size;
             let shape = this.shape;
-            let fill = this.fill; 
-            let {color1, color2, pattern} = fill;
+            let F = this.F; 
+            let {C1, C2, pattern} = F;
             let scale =  SCALEFACTOR/screenPosition.d;
             let screenSize = size * scale;
-            if(screenSize < 1 && shape !=shapes.TRIANGLES) return;
+            if(screenSize < 1 && shape !=shapes.TRI) return;
 
-            r.cursorColor2 = color2;
+            r.P2 = C2;
             r.pat = pattern
             switch(shape){
-                case shapes.CIRCLE:
+                case shapes.CIR:
                     if(screenSize < 1){
-                        r.pset(x,y,this.fill.stroke? this.fill.stroke : color1, screenPosition.d);
+                        r.pset(x,y,this .F.stroke? this .F.stroke : C1, screenPosition.d);
                     }else{
-                        r.fillCircle(x,y,screenSize, color1, screenPosition.d);
-                        r.pat = r.dither[0];
-                        if(this.fill.stroke){
-                            r.circle(x,y,screenSize, this.fill.stroke, screenPosition.d);
+                        r.fillCircle(x,y,screenSize, C1, screenPosition.d);
+                        r.pat = r.DTH[0];
+                        if(this .F.stroke){
+                            r.circle(x,y,screenSize, this .F.stroke, screenPosition.d);
                         }
                     }
                 break;
 
-                case shapes.SQUARE:
+                case shapes.SQ:
                     r.fillRect(
                         x-screenSize/2,y-screenSize/2,
                         screenSize, screenSize,
-                        color1,
+                        C1,
                         screenPosition.d
                         );
-                    if(this.fill.stroke){
+                    if(this .F.stroke){
                         r.rect(
                             x-screenSize/2, y-screenSize/2,
                             screenSize, screenSize,
-                            this.fill.stroke,
+                            this .F.stroke,
                             screenPosition.d
                             );
                     }
                 break;
 
-                case shapes.POINT:
-                    r.pset(x,y,color1, screenPosition.d);
+                case shapes.PT:
+                    r.pset(x,y,C1, screenPosition.d);
                 break;
 
-                case shapes.TRIANGLES:
+                case shapes.TRI:
                     let screenTriangles = [];
                     for(let i = 0; i < this.triangles.length; i++){
                         let triangle = this.triangles[i];
@@ -196,7 +196,7 @@ export class Splat{
                             let vert = triangle.points[j];
                             vert = matrix_rotate(vert, this.angle, 0, 0);
                             let screenVert = project3D((vert.x*size+location.x), (vert.y*size+location.y), location.z, camera);
-                            if(screenVert.d != -1 && screenVert.d < DRAWDISTANCE){
+                            if(screenVert.d != -1 && screenVert.d < DD){
                                 if(inView(screenVert, 100)){
                                     screenTriangle.push(screenVert);
                                 }
@@ -218,8 +218,8 @@ export class Splat{
                     }
                 break;    
             }
-            r.cursorColor2 = 64;
-            r.pat = r.dither[0];
+            r.P2 = 64;
+            r.pat = r.DTH[0];
         }
     }
 }
@@ -298,7 +298,7 @@ export function randomSpherePoint(x0,y0,z0,radius){
     draw(camera){
         let screenPositionA = project3D(this.a.x, this.a.y, this.a.z, camera);
         let screenPositionB = project3D(this.b.x, this.b.y, this.b.z, camera);
-        if(screenPositionA.d != -1 && screenPositionB.d != -1 && screenPositionA.d < DRAWDISTANCE && screenPositionB.d < DRAWDISTANCE){
+        if(screenPositionA.d != -1 && screenPositionB.d != -1 && screenPositionA.d < DD && screenPositionB.d < DD){
             
             r.line3d(screenPositionA.x, screenPositionA.y, screenPositionA.d, screenPositionB.x, screenPositionB.y, screenPositionB.d, this.color);
         }

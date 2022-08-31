@@ -1,3 +1,6 @@
+W = window;
+import { Vert, Splat, shapes, shape, DD, project3D,  } from './core/threedee.js';
+import { playSound, Key, lerp, randInt, randFloat, choice, scaleNumber, clamp } from './core/utils.js';
 import RetroBuffer from './core/RetroBuffer.js';
 import MusicPlayer from './musicplayer.js';
 import Player from './entities/player.js';
@@ -10,10 +13,8 @@ import wind1 from './sounds/wind1.js';
 import windlooprush from './sounds/windloop-with-rushes.js.js';
 
 
-import { playSound, Key, lerp, randInt, randFloat, choice, scaleNumber } from './core/utils.js';
-import Splode from './splode.js';
-import Map from './entities/map.js';
-import { Vert, Splat, shapes, randomSpherePoint, shape, DRAWDISTANCE, Line3d } from './core/threedee.js';
+
+
 
 if(innerWidth < 800){
   screenFactor = 2;
@@ -26,18 +27,19 @@ else {
   h = Math.floor(innerHeight/4);
 }
 
-view = { x: 0, y: 0, z: 0 };
-camera = {};
-cursor = { x: 0, y: 0, isDown: false };
-viewTarget = { x: 0, y: 0 };
-then = 0; elapsed = 0; now = 0;
-framesPerSecond = 60;
-fpsInterval = 1000 / framesPerSecond;
+W.camera = {};
+W.view = {x: 0, y: 0};
+W.cursor = { x: 0, y: 0, isDown: false };
+W.then = 0; W.elapsed = 0; W.now = 0;
+W.framesPerSecond = 60;
+W.fpsInterval = 1000 / framesPerSecond;
 
-window.t = 1;
+W.t = 1;
 splodes = [];
 splatShapes = [];
-window.lines = [];
+staticSplats = [];
+worldSplatShapes = [];
+obstacles = [];
 gamestate=0;
 paused = false;
 debug = false;
@@ -48,17 +50,24 @@ totalSounds = 2;
 audioTxt = "";
 debugText = "";
 
-const PRELOAD = 0;
-const GAME = 1;
-const TITLESCREEN = 2;
-const WELL = 3;
-const PURGATORY = 4;
-const HELL = 5;
-const HEAVEN = 6;
 
-const SCREENCENTERX = w/2; 
-const SCREENCENTERY = h/2;
-const FALLSPEED = 7;
+window.PRELOAD= 0;
+window.GAME = 1;
+window.TITLESCREEN = 2;
+window.WELL = 3;
+window.PURGATORY = 4;
+window.HELL = 5;
+window.HEAVEN = 6;
+
+
+window.SCREENCENTERX= w/2; 
+window.SCREENCENTERY= h/2;
+
+window.fallspeed = 7;
+window.deaths = 0;
+window.worldZ = 0;
+window.deathText = "";
+window.worldLength = 10000;
 
 const styleSheet = document.createElement("style")
 styleSheet.type = "text/css"
@@ -98,7 +107,7 @@ function gameInit(){
 }
 
 function initGameData(){
-  window.player = new Player(0,5,20);
+  window.player = new Player(0,5,90);
   prepareWellData();
   preparePurgatoryData();
   prepareHellData();
@@ -115,6 +124,7 @@ function initGameData(){
     scale: 300
   }
 }
+
 
 function initAudio(){
   audioCtx = new AudioContext;
@@ -159,24 +169,39 @@ function initAudio(){
 }
 
 function update_well(){
-
-
   if(!debug){
     t+=1;
+    worldZ+=fallspeed;
   let i = 0;let shapelen = splatShapes.length;
   while(i < shapelen){
     let s = splatShapes[i];
     let j = 0; let splatlen = s.splats.length;
     while(j < splatlen){
       let splat = s.splats[j];
-      splat.vert.z-=FALLSPEED;
+      splat.vert.z-=fallspeed;
       if(splat.vert.z < -10){
-        splat.vert.z = DRAWDISTANCE;
+        splat.vert.z = DD;
       }
       j++;
     }
     i++;
   }
+  i = 0; shapelen = worldSplatShapes.length;
+  while(i < shapelen){
+    let s = worldSplatShapes[i];
+    let j = 0; let splatlen = s.splats.length;
+    while(j < splatlen){
+      let splat = s.splats[j];
+      splat.vert.z-=fallspeed;
+      if(splat.vert.z < -10){
+        splat.vert.z = worldLength;
+      }
+      j++;
+    }
+    i++;
+  }
+
+  splodes.forEach(e=>{e.update();});
 
   let move = 0.05;
   if(Key.isDown(Key.w) || Key.isDown(Key.z) || Key.isDown(Key.UP)){
@@ -192,17 +217,13 @@ function update_well(){
     player.move(move, 0);
   }
 
-  if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', function(event) {
-      player.move(event.gamma * 0.1, event.beta * 0.1);
-    }, false);
-  }
+
 
   player.update();
 
 } else{
     let debugZ = camera.camZ < 0 ? "NEG " + camera.camZ : camera.camZ;
-    debugText = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}\n${player.accelleration.x.toFixed(3)}`;
+    debugText = `X ${camera.camX.toFixed(3)}\nY ${camera.camY}\nZ ${debugZ}\nPITCH ${camera.pitch}\nYAW ${camera.yaw}\n${player.acc.x.toFixed(3)}`;
 
     if(Key.isDown(Key.w)){
     let camVel = 1
@@ -239,15 +260,16 @@ function update_well(){
 
   }//debug
 
+  pruneDead(splodes);
 }
 
 function draw_well(){
   r.clr(0, r.SCREEN)
-  r.pat=r.dither[14];
-  r.cursorColor2 = 0;
+  r.pat=r.DTH[14];
+  r.P2 = 0;
   r.fillRect(0,0,w,h, 1, 9999);
-  r.cursorColor2 = 64;
-  r.pat = r.dither[0];
+  r.P2 = 64;
+  r.pat = r.DTH[0];
   player.draw();
   let i = 0;let shapelen = splatShapes.length;
   while(i < shapelen){
@@ -260,9 +282,23 @@ function draw_well(){
     }
     i++;
   }
+  i = 0; shapelen = worldSplatShapes.length;
+  while(i < shapelen){
+    let s = worldSplatShapes[i];
+    let j = 0; let splatlen = s.splats.length;
+    while(j < splatlen){
+      let splat = s.splats[j];
+      splat.draw(camera);
+      j++;
+    }
+    i++;
+  }
+
   if(debug){
     r.text([debugText, 10, 10, 1, 3, 'left', 'top', 1, 22]);
   }
+
+  splodes.forEach(e=>{e.draw();});
   r.render();
 }
 
@@ -273,7 +309,12 @@ function resetGame(){
   splatShapes = [];
   player.alive = true;
   debug = false;
+  fallspeed = 7;
   initGameData();
+}
+
+function restartLevel(){
+
 }
 
 function preload(){
@@ -299,10 +340,20 @@ function preload(){
 }
 
 function titlescreen(){
+  t++;
   cursor.isDown = false;
   r.clr(0, r.SCREEN)
-  let text = "THE WELL"
-  r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, 22]);
+  let interval = 600, frames = 5;
+  let flip = t % interval < interval-frames;
+  let text = flip ? "THE WELL" : "THE LOOP";
+  let color = flip ? 22 : 19;
+  if(!flip){
+    let x = randInt(0, w);
+    let y = randInt(0, h);
+    r.line(0, y, w, y, 19);
+    r.line(x, 0, x, h, 19);
+  }
+  r.text([text, w/2-2, 100, 2, 3, 'center', 'top', 3, color]);
   text = "CLICK TO BEGIN";
   r.text([text, w/2-2, 120, 1, 3, 'center', 'top', 1, 22]);
   r.render();
@@ -366,7 +417,7 @@ function mainLoop(){
 
 function prepareWellData(){
   let stoneCount = 24;
-  let ringCount = DRAWDISTANCE/80;
+  let ringCount = DD/80;
 
   for(let j = 0; j < ringCount; j++){
     let wellStones = [];
@@ -382,9 +433,9 @@ function prepareWellData(){
         i %2 == 0 ? 0 : 40,
         {
         size: 7.6,
-        shape: shapes.TRIANGLES,
-        fill:{
-          color1: 0, color2:  choice[0,1], pattern: r.dither[randInt(0,8)]
+        shape: shapes.TRI,
+        F:{
+          C1: 0, C2:  choice[0,1], pattern: r.DTH[randInt(0,8)]
         },
         angle: (Math.PI*2* -(i/stoneCount)),
         triangles: [
@@ -404,14 +455,14 @@ function prepareWellData(){
     let radius = 44;
     let x = Math.sin(rad) * radius;
     let y = Math.cos(rad) * radius;
-    let z = DRAWDISTANCE/60 * randInt(0,60)
+    let z = DD/60 * randInt(0,60)
      + randInt(0,20);
     let point = new Vert(x, y, z);
     let splat = new Splat(
       point.x, point.y, point.z,
     {
-      fill: { color1: choice([1,31]), color2: choice([1,31]), pattern: r.dither[choice([7,8])] },
-      shape: shapes.CIRCLE,
+      F: { C1: choice([1,31]), C2: choice([1,31]), pattern: r.DTH[choice([7,8])] },
+      shape: shapes.CIR,
       size: randInt(15,30),
     });
     
@@ -447,23 +498,6 @@ window.addEventListener('focus', function (event) {
   paused = false;
 }, false);
 
-window.addEventListener('mousemove', function (event) {
-} , false);
-window.addEventListener('mousedown', function (event) {
-  cursor.isDown = true;
-} , false);
-window.addEventListener('mouseup', function (event) {
-  cursor.isDown = false;
-} , false);
-
-window.addEventListener('touchstart', function (event) {
-  if(gamestate == PRELOAD){
-    onWindowInteraction(event); 
-  } else {
-    cursor.isDown = true;
-  }
-}, false);
-
 window.addEventListener('touchend', function (event) {
   cursor.isDown = false;
 } , false);
@@ -490,10 +524,6 @@ onWindowInteraction = function(e){
       break;
 
       case WELL:
-        let pan = scaleNumber(
-          player.position.x, -40, 40, -1, 1
-        )
-        playSound(sounds.rocksmash1, 1, pan, 0.7, false)
       break;
 
       case GAMEOVER: 
@@ -501,3 +531,4 @@ onWindowInteraction = function(e){
 }
 onclick=e=>{ onWindowInteraction(e); }
 ontouchstart=e=>{ onWindowInteraction(e);}
+

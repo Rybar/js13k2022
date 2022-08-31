@@ -1,6 +1,5 @@
 import { terser } from 'rollup-plugin-terser';
 import { dataurl } from './rollup-plugin-dataurl';
-import { roadrolled } from './rollup-plugin-roadroller';
 
 const { DEBUG = false, MINIFY = false } = process.env
 
@@ -37,7 +36,7 @@ export default {
         toplevel: true,
         compress: {
           keep_fargs: false,
-          passes: 4,
+          passes: 10,
           pure_funcs: ['assert', 'debug'],
           pure_getters: true,
           unsafe: true,
@@ -45,6 +44,11 @@ export default {
           unsafe_comps: true,
           unsafe_math: true,
           unsafe_methods: true,
+          unsafe_Function: true,
+          drop_console: true,
+          booleans_as_integers: true,
+          arguments: true,
+          //hoist_funs: true,
         },
         mangle: true
         // TODO sourceMap???

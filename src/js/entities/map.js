@@ -27,10 +27,10 @@ class Map{
         type: 0,
         vined: false,
         alive: randInt(0,100) > 90 ? true : false,
-        fill: {
-            color1: 0,
-            color2: 0,
-            dither: 0,
+        F: {
+            C1: 0,
+            C2: 0,
+            DTH: 0,
         },
         flowerColor: randInt(2,63),
         offset: {
@@ -45,17 +45,17 @@ class Map{
     this.cells.forEach(e=>{
       if(inView({x: e.x*this.cellSize, y: e.y*this.cellSize}, 16)){
         if(e.type != this.types.EMPTY){
-            r.pat = e.fill.dither;
-            r.cursorColor2 = e.fill.color2;
+            r.pat = e .F.DTH;
+            r.P2 = e .F.C2;
             r.fillCircle(
                 e.x*this.cellSize-view.x,
                 e.y*this.cellSize-view.y,
                 this.cellSize-e.offset.scale,
                 
-                e.fill.color1
+                e .F.C1
             )
-            r.pat = r.dither[0];
-            r.cursorColor2 = 64;
+            r.pat = r.DTH[0];
+            r.P2 = 64;
         }
       }
     });
@@ -171,9 +171,9 @@ class Map{
     this.cells.forEach(e=>{
       //set all walls to blue-green
       if(e.type == this.types.WALL){
-        e.fill.color1 = 15;
-        e.fill.color2 = 16;
-        e.fill.dither = r.dither[randInt(0,15)]
+        e .F.C1 = 15;
+        e .F.C2 = 16;
+        e .F.DTH = r.DTH[randInt(0,15)]
         e.offset.scale = randInt(1,3);
       }
       //don't want to attempt to set cells at edge of map
@@ -182,9 +182,9 @@ class Map{
         let topNeighbor = this.getCell(e.x, e.y-1);
         if(topNeighbor.type == this.types.EMPTY){
           e.fill = {
-            color1: 13,
-            color2: 14,
-            dither: r.dither[randInt(0,15)]
+            C1: 13,
+            C2: 14,
+            DTH: r.DTH[randInt(0,15)]
           }
           
           
@@ -192,9 +192,9 @@ class Map{
         //darken bottom edge tiles
         let bottomNeighbor = this.getCell(e.x, e.y+1);
         if(bottomNeighbor != undefined && bottomNeighbor.type == this.types.EMPTY){
-          e.fill.color1 = 13;
-          e.fill.color2 = 14;
-          e.fill.dither = r.dither[randInt(0,15)]
+          e .F.C1 = 13;
+          e .F.C2 = 14;
+          e .F.DTH = r.DTH[randInt(0,15)]
         }
 
       }

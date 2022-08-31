@@ -7,7 +7,7 @@
     "clean": "rm -rf dist && mkdir dist",
     "build": "run-s clean build:*",
     "build:js": "rollup -c scripts/rollup.config.js --environment MINIFY",
-    "build:roadroller": "roadroller  dist/game-rollup.js -o dist/game.js",
+    "build:roadroller": "roadroller  dist/game-rollup.js --dirty -O 1 -o dist/game.js",
     "build:html": "grep -v body src/index.html | html-inline -b dist | html-minifier -c scripts/htmlmin.json -o dist/index.html",
     "build:zip": "zip -FS -qjX9 dist/game.zip dist/index.html && advzip -z -4 -i 400 dist/game.zip",
     "build:zipSize": "node scripts/zipSize.js",

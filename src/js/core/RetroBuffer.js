@@ -15,8 +15,8 @@ class RetroBuffer {
     //relative drawing position and pencolor, for drawing functions that require it.
     this.cursorX = 0;
     this.cursorY = 0;
-    this.cursorColor = 22;
-    this.cursorColor2 = 64;
+    this.P1 = 22;
+    this.P2 = 64;
     this.stencil = false;
     this.stencilSource = this.PAGE_2;
     this.stencilOffset = 0;
@@ -57,7 +57,7 @@ class RetroBuffer {
       57, 58, 59, 60, 61, 62, 63, 64,
     ];
 
-    this.dither = [
+    this.DTH = [
       0b1111111111111111, 0b1111111111110111, 0b1111110111110111,
       0b1111110111110101, 0b1111010111110101, 0b1111010110110101,
       0b1110010110110101, 0b1110010110100101, 0b1010010110100101,
@@ -92,10 +92,10 @@ class RetroBuffer {
 
   //--------------graphics functions----------------
 
-  setPen(color, color2, dither = 0) {
-    this.cursorColor = color;
-    this.cursorColor2 = color2;
-    this.pat = dither;
+  setPen(color, C2, DTH = 0) {
+    this.P1 = color;
+    this.P2 = C2;
+    this.pat = DTH;
   }
 
   clr(color, page) {
@@ -115,7 +115,7 @@ class RetroBuffer {
       
     let px = (y % 4) * 4 + (x % 4);
     let mask = this.pat & Math.pow(2, px)
-    let pcolor = mask ? color : this.cursorColor2;
+    let pcolor = mask ? color : this.P2;
     if (pcolor == 64) return;
     this.ram[this.renderTarget + y * this.WIDTH + x] = pcolor;
     this.zbuf[y * this.WIDTH + x] = z;
@@ -392,7 +392,7 @@ class RetroBuffer {
   ) {
     var xratio = sw / dw;
     var yratio = sh / dh;
-    this.pat = this.dither[0]; //reset pattern
+    this.pat = this.DTH[0]; //reset pattern
     for (var i = 0; i < dh; i++) {
       for (var j = 0; j < dw; j++) {
         px = (j * xratio) | 0;
@@ -407,7 +407,7 @@ class RetroBuffer {
     }
   }
 
-  outline(renderSource, renderTarget, color, color2, color3, color4) {
+  outline(renderSource, renderTarget, color, C2, color3, color4) {
     for (let i = 0; i <= this.WIDTH; i++) {
       for (let j = 0; j <= this.HEIGHT; j++) {
         let left = i - 1 + j * this.WIDTH;
@@ -424,7 +424,7 @@ class RetroBuffer {
             this.ram[this.renderTarget + right] = color3;
           }
           if (this.ram[this.renderSource + top] == 64) {
-            this.ram[this.renderTarget + top] = color2;
+            this.ram[this.renderTarget + top] = C2;
           }
           if (this.ram[this.renderSource + bottom] == 64) {
             this.ram[this.renderTarget + bottom] = color4;

@@ -8,7 +8,7 @@ refactor drawdistance into RetroBuffer pset  --depth based color  (fog)
 
 splat class
     vertex
-    colors + dither
+    colors + DTH
     size
     shape type
         circle
